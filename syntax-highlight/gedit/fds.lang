@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Author: Emanuele Gissi <emanuele.gissi@gmail.com>
+ Copyright (C) 2009 Emanuele Gissi <emanuele.gissi@gmail.com>
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 3 of the License, or (at your option) any later version.
+
+ Copy this file to the following locations:
+ ~/.local/gtksourceview-3.0/language-specs/
+ ~/.local/gtksourceview-2.0/language-specs/
+ ~/.local/gtksourceview-1.0/language-specs/
+
+-->
+<language id="fds" _name="FDS" version="2.0" _section="Sources">
+  <metadata>
+    <property name="mimetypes">text/plain</property>
+    <property name="globs">*.fds</property>
+  </metadata>
+
+  <styles>
+    <style id="comment-title" _name="Comment title"   map-to="def:shebang"/>
+    <style id="comment"       _name="Comment"         map-to="def:comment"/>
+    <style id="namelist"      _name="Namelist"        map-to="def:keyword"/>
+    <style id="string"        _name="String"          map-to="def:identifier"/>
+    <style id="decimal"       _name="Decimal"         map-to="def:decimal"/>
+    <style id="float"         _name="Floating Point"  map-to="def:floating-point"/>
+    <style id="boolean"       _name="Boolean value"   map-to="def:special-constant"/>
+    <style id="error"         _name="Error"           map-to="def:error"/>
+    <style id="py"            _name="Python pp"       map-to="def:preprocessor"/>
+
+  </styles>
+
+  <default-regex-options case-sensitive="true"/>
+
+  <definitions>
+
+    <context id="boolean" style-ref="boolean">
+      <prefix>\.</prefix>
+      <suffix>\.</suffix>
+      <keyword>TRUE</keyword>
+      <keyword>FALSE</keyword>
+    </context>
+
+    <context id="float" style-ref="float">
+      <match extended="true">
+        (?&lt;![\w\.])
+        [+-]?
+        ((\.[0-9]+ | [0-9]+\.[0-9]*) ([ed][+-]?[0-9]*)? |
+         ([0-9]+[ed][+-]?[0-9]*))
+        (?![\w\.])
+      </match>
+    </context>
+
+    <context id="decimal" style-ref="decimal">
+      <match extended="true">
+        (?&lt;![\w\.])
+        [+-]? ([1-9][0-9]*|0)
+        (?![\w\.])
+      </match>
+    </context>
+
+    <context id="string"  style-ref="string">
+      <start>'</start>
+      <end>'</end>
+    </context>
+
+    <context id="string2" style-ref="string">
+      <start>"</start>
+      <end>"</end>
+    </context>
+
+    <context id="lost-amp" style-ref="error">
+      <match>&amp;</match>
+    </context>
+
+    <context id="comment-title" style-ref="comment-title" end-at-line-end="true">
+      <start>!!!</start>
+    </context>
+
+    <context id="py" style-ref="py">
+      <start>&lt;py&gt;</start>
+      <end>&lt;\/py&gt;</end>
+    </context>
+
+    <context id="comment" style-ref="comment">
+      <match>\S</match>
+    </context>
+
+    <context id="namelist">
+      <start>^&amp;[A-Z]{4}</start>
+      <end>\/</end>
+      <include>
+        <context sub-pattern="0" where="start" style-ref="namelist"/>
+        <context sub-pattern="0" where="end"   style-ref="namelist"/>
+        <context ref="boolean"/>
+        <context ref="string" />
+        <context ref="string2"/>
+        <context ref="float"  />
+        <context ref="decimal"/>
+        <context ref="py"/>
+        <context ref="lost-amp"/>
+      </include>
+    </context>
+
+    <context id="fds">
+      <include>
+        <context ref="namelist"/>
+        <context ref="lost-amp"/>
+        <context ref="comment-title"/>
+        <context ref="py"/>
+        <context ref="comment"/>
+      </include>
+    </context>
+
+  </definitions>
+</language>

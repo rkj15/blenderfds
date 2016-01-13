@@ -1,0 +1,8 @@
+&REAC FUEL='NZ C-VM2 pre-fo',
+      FORMULA='C2H4O1',
+      SOOT_YIELD=0.07,
+      CO_YIELD=0.04,
+      HEAT_OF_COMBUSTION=20000.,
+      IDEAL=.FALSE.,
+      FYI='NZ C-VM2, Table 2.1, pre-flashover design fire'
+      /

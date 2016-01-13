@@ -1,0 +1,4 @@
+&SURF ID='Adiabatic surface',
+      COLOR='GRAY',
+      ADIABATIC=.TRUE.,
+      /

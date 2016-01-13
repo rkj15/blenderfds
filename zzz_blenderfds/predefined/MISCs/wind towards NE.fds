@@ -1,0 +1,1 @@
+&MISC MEAN_FORCING(1:2)=.TRUE.,.TRUE., U0=7.07, V0=7.07, DT_MEAN_FORCING=.1, FYI='Wind towards NE (positive x axis eastward) at 10 m:s' /

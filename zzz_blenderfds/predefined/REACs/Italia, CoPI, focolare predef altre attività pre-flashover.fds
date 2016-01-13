@@ -1,0 +1,8 @@
+&REAC FUEL='Ita CoPI altre pre-fo',
+      FORMULA='C2H4O1',
+      SOOT_YIELD=0.18,
+      CO_YIELD=0.10,
+      HEAT_OF_COMBUSTION=20000.,
+      IDEAL=.FALSE.,
+      FYI='Codice di prevenzione incendi, tab. M.2-2, focolare predefinito per altre attività, pre-flashover'
+      /
