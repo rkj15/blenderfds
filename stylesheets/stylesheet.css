@@ -127,10 +127,8 @@ a:hover, a:focus {
     text-decoration: underline;
 }
 
-
 .btn {
   background: #d84231;
-
   -webkit-border-radius: 28;
   -moz-border-radius: 28;
   border-radius: 28px;
