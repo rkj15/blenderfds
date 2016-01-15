@@ -1,7 +1,7 @@
 """BlenderFDS, preferences panel"""
 
 from bpy.types import AddonPreferences
-from bpy.props import *
+from bpy.props import BoolProperty
 
 # Get preference value like this:
 # bpy.context.user_preferences.addons["zzz_blenderfds"].preferences.bf_pref_simplify_ui

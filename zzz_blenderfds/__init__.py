@@ -25,14 +25,14 @@ print("""
 bl_info = {
     "name": "BlenderFDS",
     "author": "Emanuele Gissi",
-    "version": (3,1,0),
+    "version": (4,0,0),
     "blender": (2,7,6),
     "api": 35622,
     "location": "File > Export > FDS Case (.fds)",
     "description": "BlenderFDS, an open graphical editor for the NIST Fire Dynamics Simulator",
     "warning": "",
     "wiki_url": "http://www.blenderfds.org/",
-    "tracker_url": "http://code.google.com/p/blenderfds/issues/list",
+    "tracker_url": "https://github.com/firetools/blenderfds/issues",
     "support": "COMMUNITY",
     "category": "Import-Export",
 }

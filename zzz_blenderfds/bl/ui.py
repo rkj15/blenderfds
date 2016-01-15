@@ -174,6 +174,7 @@ _used_panels = (
     'OBJECT_PT_BF_MESH', 'OBJECT_PT_BF_EMPTY', 'OBJECT_PT_BF_TMP',
     'MATERIAL_PT_BF',
     'DATA_PT_modifiers', 'RENDER_PT_render',
+    'OBJECT_PT_relations',
 )
 
 _unused_panels = (
@@ -191,7 +192,6 @@ _used_panel_by_bl_region_type = "UI"
 def _treat_unused_bl_classes():
     """Treat (rewire or unregister) unused Blender bpy.types"""
     for bt_name in dir(bpy.types):
-        # if DEBUG: print("BFDS: Treated Class:", bt_name)
         # Init
         bt_cls = getattr(bpy.types, bt_name, None)
         bt_bl_space_type = getattr(bt_cls, "bl_space_type", None)

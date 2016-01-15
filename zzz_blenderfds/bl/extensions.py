@@ -3,14 +3,15 @@
 import bpy, time
 from bpy.types import Object, Material, Scene
 
-from .. import geometry
 from ..types import BFNamelist
 from ..exceptions import BFException
+from .. import geometry
 from .. import fds
 
 from .. import config
-from ..config import DEBUG
+from .operators import open_text_in_editor
 
+DEBUG = False
 
 ### Extend bpy.type.Object
 
@@ -20,7 +21,7 @@ class BFObject():
     def _get_bf_namelist(self):
         """Returns an instance of the linked Object namelist class."""
         if self.type != "MESH": return None
-        ON_cls = BFNamelist.all_by_cls_name.get(self.bf_namelist_cls) # get class from name
+        ON_cls = BFNamelist.all.get(self.bf_namelist_cls) # get class from name
         if ON_cls: return ON_cls(element=self) # create instance from class
 
     bf_namelist = property(_get_bf_namelist) # Only one namelist per object
@@ -73,7 +74,7 @@ class BFMaterial():
 
     def _get_bf_namelist(self):
         """Returns an instance of the linked Material namelist class"""
-        MN_cls = BFNamelist.all_by_cls_name.get(self.bf_namelist_cls) # get class from name
+        MN_cls = BFNamelist.all.get(self.bf_namelist_cls) # get class from name
         if MN_cls: return MN_cls(element=self) # create instance from class
 
     bf_namelist = property(_get_bf_namelist) # Only one namelist per material
@@ -181,7 +182,8 @@ class BFScene():
         bodies.append("! --- Geometric entities\n\n")
         obs = [ob for ob in context.scene.objects \
             if ob.type in ("MESH", "EMPTY",) and ob.parent == None and ob.bf_export]
-        obs.sort(key=lambda k:k.name) # Alphabetic order by element name
+        obs.sort(key=lambda k:k.name) # Order by element name
+        obs.sort(key=lambda k:k.bf_namelist_cls!=("ON_MESH")) # Order MESHes first (False then True)
         for ob in obs:
             bodies.append(ob.to_fds(context))
         bodies.append("\n")
@@ -199,13 +201,13 @@ class BFScene():
 
     # Import
 
-    def _get_imported_bf_namelist_cls(self, fds_label, fds_value) -> "BFNamelist or None":
+    def _get_imported_bf_namelist_cls(self, context, fds_label, fds_value) -> "BFNamelist or None":
         """Try to get managed BFNamelist from fds_label."""
-        bf_namelist_cls = None
-        try: bf_namelist_cls = BFNamelist.all_by_fds_label[fds_label]
-        except KeyError:
-            if set(("XB", "XYZ", "PBX", "PBY", "PBZ")) & set(prop[1] for prop in fds_value): # An unmanaged geometric namelist?
-                bf_namelist_cls = BFNamelist.all_by_cls_name["ON_free"] # Link to free namelist
+        bf_namelist_cls = BFNamelist.all.get_by_fds_label(fds_label)
+        if not bf_namelist_cls:
+            if set(("XB", "XYZ", "PBX", "PBY", "PBZ")) & set(prop[1] for prop in fds_value):
+                # An unmanaged geometric namelist
+                bf_namelist_cls = BFNamelist.all["ON_free"] # Link to free namelist
         return bf_namelist_cls
 
     def _get_imported_element(self, context, bf_namelist_cls, fds_label, fds_value) -> "Element":
@@ -230,7 +232,7 @@ class BFScene():
         element.set_default_appearance(context)
         return element
 
-    def _save_imported_unmanaged_tokens(self, free_texts) -> "None":
+    def _save_imported_unmanaged_tokens(self, context, free_texts) -> "None":
         """Save unmanaged tokens to free text."""
         # If not existing, create
         if not self.bf_head_free_text:
@@ -242,8 +244,9 @@ class BFScene():
         if bpy.data.texts[bf_head_free_text]:
             free_texts.append("\n! Previous\n")
             free_texts.append(bpy.data.texts[bf_head_free_text].as_string())
-        # Write
+        # Write and show
         bpy.data.texts[bf_head_free_text].from_string("\n".join(free_texts))
+        open_text_in_editor(context, bf_head_free_text)
 
     def from_fds(self, context, value, snippet=False):
         """Import a text in FDS notation into self. On error raise BFException.
@@ -265,7 +268,7 @@ class BFScene():
         for token in tokens:
             # Init
             fds_original, fds_label, fds_value = token
-            bf_namelist_cls = self._get_imported_bf_namelist_cls(fds_label, fds_value)
+            bf_namelist_cls = self._get_imported_bf_namelist_cls(context, fds_label, fds_value)
             # This FDS namelist is not managed
             if not bf_namelist_cls:
                 free_texts.append(fds_original)
@@ -281,7 +284,7 @@ class BFScene():
                 is_error_reported = True
                 free_texts.extend(err.fds_labels)
         # Save unmanaged tokens to free text
-        if free_texts: self._save_imported_unmanaged_tokens(free_texts)
+        if free_texts: self._save_imported_unmanaged_tokens(context, free_texts)
         # Return
         w.cursor_modal_restore()
         if is_error_reported: raise BFException(self, "Errors reported, see details in HEAD free text file.")

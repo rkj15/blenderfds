@@ -5,11 +5,9 @@ import bpy, os.path, sys
 from bpy.types import Operator
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
-from ..types import *
-
 from .. import config
-from ..config import DEBUG
 
+DEBUG = False
 
 ### Export scene to FDS
 

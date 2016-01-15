@@ -14,3 +14,30 @@ def isiterable(var):
     except TypeError: return False
     return True
 
+class ClsList(list):
+    """List of classes"""
+
+    def __contains__(self,key):
+        if isinstance(key,str):
+            for value in self:
+                if value.__name__ == key: return True
+            else: return False
+        return list.__contains__(self,key)
+    
+    def __getitem__(self,key):
+        if isinstance(key,str):
+            for value in self:
+                if value.__name__ == key: return value
+                raise KeyError(key)    
+        return super().__getitem__(self,key)
+
+    def get(self,key,default=None):
+        for value in self:
+            if value.__name__ == key: return value
+        return default
+
+    def get_by_fds_label(self,key,default=None):
+        if not key: return default
+        for value in self:
+            if value.fds_label == key: return value
+        return default

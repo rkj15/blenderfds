@@ -7,6 +7,7 @@ from bpy.props import *
 from ..types import BFNamelist, BFProp
 from .. import fds
 from .. import geometry
+from ..fds.lang import OP_SURF_ID
 
 ### Dialog box
 
@@ -187,8 +188,8 @@ class SCENE_OT_bf_show_fds_code(common_bf_show_fds_code, Operator):
     bl_description = "Show FDS code exported from Blender SCene"
 
     def _get_fds_code(self, context):
-        sc = context.scene
-        self.bf_fds_code = sc.to_fds(context)
+        scene = context.scene
+        self.bf_fds_code = scene.to_fds(context)
 
 ### Copy properties between elements
 
@@ -377,7 +378,15 @@ class SCENE_OT_bf_del_all_tmp_objects(Operator):
 
 ### Open text editor with right text displayed
 
-def _open_text_in_editor(context, text_name):
+def set_free_text_file(scene): # TODO align with from_fds
+    if not scene.bf_head_free_text:
+        # Empty field
+        scene.bf_head_free_text = "HEAD free text ({})".format(scene.name)
+    if scene.bf_head_free_text not in bpy.data.texts:
+        # No linked file, create
+        bpy.data.texts.new(scene.bf_head_free_text)
+        
+def open_text_in_editor(context, text_name):
     # Text Editor already displayed?
     area_te = None
     for window in context.window_manager.windows:
@@ -396,16 +405,10 @@ class SCENE_OT_bf_edit_head_free_text(Operator):
     bl_description = "Edit free text file in separate editor"
 
     def execute(self, context):
-        sc = context.scene
-        # Check
-        if not sc.bf_head_free_text: # Empty field?
-            sc.bf_head_free_text = "HEAD free text"
-        if sc.bf_head_free_text not in bpy.data.texts: # No linked file?
-            bpy.data.texts.new(sc.bf_head_free_text)
-        # Open
-        _open_text_in_editor(context, sc.bf_head_free_text)
-        # Return
-        self.report({"INFO"}, "See '{}' in the text editor".format(sc.bf_head_free_text))
+        scene = context.scene
+        set_free_text_file(scene)
+        open_text_in_editor(context, scene.bf_head_free_text)
+        self.report({"INFO"}, "See '{}' in the text editor".format(scene.bf_head_free_text))
         return {'FINISHED'}
 
 ### Set TAU_Q ramp according to norms
@@ -458,7 +461,7 @@ class MATERIAL_OT_bf_set_tau_q(Operator):
         obs = (ob for ob in context.scene.objects \
             if ob.type == "MESH" and ob.bf_export \
             and ob.active_material == ma \
-            and "OP_SURF_ID" in ob.bf_namelist.all_bf_props_by_cls_name)
+            and OP_SURF_ID in ob.bf_namelist.all_bf_props)
         for ob in obs: burner_area += geometry.utils.get_global_area(context, ob)
         # Set defaults to estimated values
         self.bf_burner_area = burner_area

@@ -2,7 +2,7 @@
 
 from bpy.types import Panel
 
-from ..fds.lang import SN_HEAD, SN_TIME, SN_DUMP, SN_MISC, SN_REAC
+from ..fds.lang import SN_HEAD, SN_TIME, SN_DUMP, SN_MISC, SN_REAC, OP_SURF_ID
 
 ### Scene panels
 
@@ -163,7 +163,7 @@ class MATERIAL_PT_BF(Panel):
         ma = context.material
         ob = context.active_object
         return ma and ob and ob.type == "MESH" and not ob.bf_is_tmp \
-            and "OP_SURF_ID" in ob.bf_namelist.all_bf_props_by_cls_name
+            and OP_SURF_ID in ob.bf_namelist.all_bf_props
             # show the panel only when relevant
 
     def draw_header(self, context):

@@ -11,7 +11,8 @@ from .. import geometry
 from . import tables, mesh
 
 from .. import config
-from ..config import DEBUG
+
+DEBUG = False
 
 # TODO: evacuation namelists
 
@@ -22,8 +23,14 @@ from ..config import DEBUG
 def update_OP_namelist_cls(self, context):
     # Del all tmp_objects, if self has one
     if self.bf_has_tmp: geometry.tmp_objects.del_all(context)
-    # Set all geometries to NONE, as different namelists may have different geometric possibilities
-    self.bf_xb, self.bf_xyz, self.bf_pb = "NONE", "NONE", "NONE"
+    # Check allowed geometries, different namelists may have different allowed geometries
+    bf_namelist = self.bf_namelist
+    bf_prop_XB = bf_namelist.bf_prop_XB
+    bf_prop_XYZ = bf_namelist.bf_prop_XYZ    
+    bf_prop_PB = bf_namelist.bf_prop_PB 
+    if bf_prop_XB and self.bf_xb not in bf_prop_XB.allowed_items: self.bf_xb = "NONE"
+    if bf_prop_XYZ and self.bf_xyz not in bf_prop_XYZ.allowed_items: self.bf_xyz = "NONE"
+    if bf_prop_PB and self.bf_pb not in bf_prop_PB.allowed_items: self.bf_pb = "NONE"
     # Set default appearance
     self.set_default_appearance(context)
 
@@ -108,25 +115,6 @@ class OP_namelist_old_1(BFStringProp):
 
 ### Geometric props
 
-# Generic geometry class
-
-@subscribe
-class OP_generic_geometry(BFProp):
-    bpy_type = Object
-
-    items_shown = "NONE",
-
-    def _transform_layout(self, context, layout):
-        split = layout.split(.1)
-        col1, col2 = split.row(), split.column(align=True)
-        col1.label(text="{}:".format(self.label))
-        return col2
-        
-    def _draw_body(self, context, layout):
-        # Draw enum with shown items only
-        row = layout.row(align=True)
-        for item in self.items_shown: row.prop_enum(self.element, self.bpy_idname, item)
-
 # Voxel/Pixel size
 
 def update_bf_xb_voxel_size(self, context):
@@ -174,15 +162,6 @@ class OP_XB_voxel_size(BFNoAutoMod, BFProp):
     }
     # unit = "LENGTH", # correction for scale_length needed before exporting!
 
-    def draw(self, context, layout):
-        row = layout.row()
-        row.prop(self.element, "bf_xb_precise_bbox")
-        layout_export, layout_custom = row.column(), row.column()
-        layout_export.prop(self.element, "bf_xb_custom_voxel", text="")
-        row = layout_custom.row(align=True)
-        row.prop(self.element, "bf_xb_voxel_size")
-        layout_custom.active = self.element.bf_xb_custom_voxel
-
 @subscribe
 class SP_default_voxel_size(BFNoAutoExportMod, BFProp):
     label = "Default Resolution"
@@ -212,14 +191,8 @@ def update_bf_xb(self, context):
         if self.bf_pb == "PLANES": self.bf_pb = "NONE"
 
 @subscribe
-class OP_XB(OP_generic_geometry):
-    label = "XB"
-    description = "XB"
-    fds_label = "XB"
-    bf_sys = True
+class OP_XB(BFXBProp):
     bf_props = OP_XB_precise_bbox, OP_XB_custom_voxel, OP_XB_voxel_size
-    bpy_idname = "bf_xb"
-    bpy_prop = EnumProperty
     bpy_default = "BBOX"
     bpy_other = {
         "update": update_bf_xb,
@@ -231,13 +204,20 @@ class OP_XB(OP_generic_geometry):
             ("PIXELS", "Pixels", "Export pixels from pixelized flat object", 400),
             ("EDGES", "Edges", "Segments, one for each edge of this object", 500),
         )
-}
+    }
+    allowed_items = "NONE", "BBOX", "VOXELS", "FACES", "PIXELS", "EDGES"
 
-    items_shown = "NONE", "BBOX", "VOXELS", "FACES", "PIXELS", "EDGES"
-   
-    def _draw_extra(self, context, layout):
-        if self.element.bf_xb in ("VOXELS", "PIXELS"):
-            self.bf_prop_by_cls[OP_XB_voxel_size].draw(context, layout)
+    def _draw_body(self, context, layout):
+        super()._draw_body(context, layout)
+        if not self.element.bf_xb in ("VOXELS", "PIXELS"): return
+        # Draw VOXELS, PIXELS properties
+        row = layout.row()
+        row.prop(self.element, "bf_xb_precise_bbox")
+        layout_export, layout_custom = row.column(), row.column()
+        layout_export.prop(self.element, "bf_xb_custom_voxel", text="")
+        row = layout_custom.row(align=True)
+        row.prop(self.element, "bf_xb_voxel_size")
+        layout_custom.active = self.element.bf_xb_custom_voxel
 
     def _format_xb(self, value):
         return "XB={0[0]:.3f},{0[1]:.3f},{0[2]:.3f},{0[3]:.3f},{0[4]:.3f},{0[5]:.3f}".format(value)
@@ -271,7 +251,7 @@ class OP_XB(OP_generic_geometry):
         self.check(context)
         # Init
         bf_xb = self.element.bf_xb
-        if bf_xb not in self.items_shown: return None
+        if bf_xb not in self.allowed_items: return None
         # Get coordinates
         xbs, msg = geometry.to_fds.ob_to_xbs(context, self.element)
         if msg: self.infos.append(msg)
@@ -311,15 +291,15 @@ class OP_XB(OP_generic_geometry):
 
 @subscribe
 class OP_XB_bbox(OP_XB):
-    items_shown = "NONE", "BBOX"
+    allowed_items = "NONE", "BBOX"
 
 @subscribe
 class OP_XB_solid(OP_XB):
-    items_shown = "NONE", "BBOX", "VOXELS"
+    allowed_items = "NONE", "BBOX", "VOXELS"
 
 @subscribe
 class OP_XB_faces(OP_XB):
-    items_shown = "NONE", "FACES", "PIXELS"
+    allowed_items = "NONE", "FACES", "PIXELS"
 
 # XYZ
 
@@ -333,12 +313,7 @@ def update_bf_xyz(self, context):
         if self.bf_pb == "PLANES": self.bf_pb = "NONE"
 
 @subscribe
-class OP_XYZ(OP_generic_geometry):
-    label = "XYZ"
-    description = "Set points"
-    fds_label = "XYZ"
-    bf_sys = True
-    bpy_idname = "bf_xyz"
+class OP_XYZ(BFXYZProp):
     bpy_prop = EnumProperty
     bpy_default = "NONE"
     bpy_other = {
@@ -350,7 +325,7 @@ class OP_XYZ(OP_generic_geometry):
         )
     }
 
-    items_shown = "NONE", "CENTER", "VERTICES"
+    allowed_items = "NONE", "CENTER", "VERTICES"
 
     def _format_xyz(self, value):
         return "XYZ={0[0]:.3f},{0[1]:.3f},{0[2]:.3f}".format(value)
@@ -384,7 +359,7 @@ class OP_XYZ(OP_generic_geometry):
         self.check(context)
         # Init
         bf_xyz = self.element.bf_xyz
-        if bf_xyz not in self.items_shown: return None
+        if bf_xyz not in self.allowed_items: return None
         # Get coordinates
         xyzs, msg = geometry.to_fds.ob_to_xyzs(context, self.element)
         if msg: self.infos.append(msg)
@@ -433,13 +408,8 @@ def update_bf_pb(self, context):
         if self.bf_xyz == "VERTICES": self.bf_xyz = "NONE"
 
 # @subscribe OP_PB later, because OP_PB* are defined later
-class OP_PB(OP_generic_geometry):
-    label = "PB*"
-    description = "Set planes"
-    # fds_label = "PB" Inserted in format
-    bf_sys = True
+class OP_PB(BFPBProp):
     # bf_props = OP_PBX, OP_PBY, OP_PBZ are defined later
-    bpy_idname = "bf_pb"
     bpy_prop = EnumProperty
     bpy_default = "NONE"
     bpy_other = {
@@ -450,7 +420,7 @@ class OP_PB(OP_generic_geometry):
         )
     }
 
-    items_shown = "NONE", "PLANES"
+    allowed_items = "NONE", "PLANES"
 
     def _format_pb(self, value):
         return "PB{0[0]}={0[1]:.3f}".format(value)
@@ -466,7 +436,7 @@ class OP_PB(OP_generic_geometry):
         self.check(context)
         # Init
         bf_pb = self.element.bf_pb
-        if bf_pb not in self.items_shown: return None
+        if bf_pb not in self.allowed_items: return None
         # Get coordinates
         pbs, msg = geometry.to_fds.ob_to_pbs(context, self.element)
         if msg: self.infos.append(msg)
@@ -506,26 +476,20 @@ class OP_PB(OP_generic_geometry):
 @subscribe
 class OP_PBX(BFNoAutoMod, OP_PB): # used for PBX, PBY, PBZ import trapping
     label = "PBX"
-    description = "Set PBX planes"
     bf_props = []
     fds_label = "PBX"
-    bpy_idname = "bf_pb"
 
 @subscribe
 class OP_PBY(BFNoAutoMod, OP_PB): # used for PBX, PBY, PBZ import trapping
     label = "PBY"
-    description = "Set PBY planes"
     bf_props = []
     fds_label = "PBY"
-    bpy_idname = "bf_pb"
 
 @subscribe
 class OP_PBZ(BFNoAutoMod, OP_PB): # used for PBX, PBY, PBZ import trapping
     label = "PBZ"
-    description = "Set PBZ planes"
     bf_props = []
     fds_label = "PBZ"
-    bpy_idname = "bf_pb"
 
 # now OP_PB* are defined,
 # we can update OP_PB.bf_props and subscribe OP_PB
@@ -580,7 +544,7 @@ class SP_HEAD_directory(BFNoAutoExportMod, BFProp):
     def check(self, context):
         value = self.element.bf_head_directory
         if value and not os.path.exists(bpy.path.abspath(value)):
-            raise BFException(self, "Path not existing")
+            raise BFException(self, "Case directory path not existing")
 
 @subscribe
 class SP_HEAD_free_text(BFNoAutoExportMod, BFProp):
@@ -597,6 +561,13 @@ class SP_HEAD_free_text(BFNoAutoExportMod, BFProp):
         row.prop_search(self.element, self.bpy_idname, bpy.data, "texts")
         row.operator("scene.bf_edit_head_free_text", icon="GREASEPENCIL", text="")
 
+    def check(self, context):
+        bf_head_free_text = self.element.bf_head_free_text
+        if not bf_head_free_text: return None
+        # Check existence
+        if bf_head_free_text not in bpy.data.texts:
+            raise BFException(self, "Free text file not existing")
+
 @subscribe
 class SN_HEAD(BFNamelist):
     label = "HEAD"
@@ -606,13 +577,6 @@ class SN_HEAD(BFNamelist):
     fds_label = "HEAD"
     bpy_type = Scene
     bf_props = SP_HEAD_CHID, SP_HEAD_TITLE, SP_HEAD_directory, SP_default_voxel_size, SP_HEAD_free_text
-
-    def check(self, context):
-        bf_head_free_text = self.element.bf_head_free_text
-        if not bf_head_free_text: return None
-        # Check existence
-        if bf_head_free_text not in bpy.data.texts:
-            raise BFException(self, "Free text file not existing")
 
 # TIME
 
@@ -674,8 +638,7 @@ class SN_TIME(BFNamelist):
     fds_label = "TIME"
     bf_prop_export = SP_TIME_export
     bpy_type = Scene
-    bf_props = SP_TIME_T_BEGIN, SP_TIME_T_END, SP_TIME_setup_only
-    bf_prop_free = SP_TIME_free
+    bf_props = SP_TIME_T_BEGIN, SP_TIME_T_END, SP_TIME_setup_only, SP_TIME_free
 
 
 # MISC
@@ -709,8 +672,8 @@ class SN_MISC(BFNamelist):
     fds_label = "MISC"
     bf_prop_export = SP_MISC_export
     bpy_type = Scene
-    bf_props = SP_MISC_FYI,
-    bf_prop_free = SP_MISC_free
+    bf_props = SP_MISC_FYI, SP_MISC_free
+    
 
 # REAC
 
@@ -830,9 +793,9 @@ class SN_REAC(BFNamelist):
     enum_id = 3004
     fds_label = "REAC"
     bf_prop_export = SP_REAC_export
-    bf_props = SP_REAC_FUEL, SP_REAC_FYI, SP_REAC_FORMULA, SP_REAC_CO_YIELD, SP_REAC_SOOT_YIELD, SP_REAC_HEAT_OF_COMBUSTION, SP_REAC_IDEAL
+    bf_props = SP_REAC_FUEL, SP_REAC_FYI, SP_REAC_FORMULA, SP_REAC_CO_YIELD, SP_REAC_SOOT_YIELD, SP_REAC_HEAT_OF_COMBUSTION, SP_REAC_IDEAL, SP_REAC_free
     bpy_type = Scene
-    bf_prop_free = SP_REAC_free
+
 
 # DUMP
 
@@ -890,9 +853,9 @@ class SN_DUMP(BFNamelist):
     enum_id = 3005
     fds_label = "DUMP"
     bf_prop_export = SP_DUMP_export
-    bf_props = SP_DUMP_render_file, SP_DUMP_NFRAMES
+    bf_props = SP_DUMP_render_file, SP_DUMP_NFRAMES, SP_DUMP_free
     bpy_type = Scene
-    bf_prop_free = SP_DUMP_free
+
 
 # TAIL
 
@@ -1079,8 +1042,7 @@ class MN_SURF(BFNamelist):
     fds_label = "SURF"
     bpy_type = Material
     bf_prop_export = MP_export
-    bf_props = MP_ID, MP_FYI, MP_RGB, MP_TRANSPARENCY, MP_MATL_ID, MP_THICKNESS
-    bf_prop_free = MP_free
+    bf_props = MP_ID, MP_FYI, MP_RGB, MP_TRANSPARENCY, MP_MATL_ID, MP_THICKNESS, MP_free
 
 @subscribe
 class MN_SURF_burner(BFNamelist):
@@ -1090,8 +1052,7 @@ class MN_SURF_burner(BFNamelist):
     fds_label = "SURF"
     bpy_type = Material
     bf_prop_export = MP_export
-    bf_props = MP_ID, MP_FYI, MP_RGB, MP_TRANSPARENCY, MP_HRRPUA, MP_TAU_Q
-    bf_prop_free = MP_free
+    bf_props = MP_ID, MP_FYI, MP_RGB, MP_TRANSPARENCY, MP_HRRPUA, MP_TAU_Q, MP_free
 
 @subscribe
 class MN_SURF_solid(BFNamelist):
@@ -1101,8 +1062,7 @@ class MN_SURF_solid(BFNamelist):
     fds_label = "SURF"
     bpy_type = Material
     bf_prop_export = MP_export
-    bf_props = MP_ID, MP_FYI, MP_RGB, MP_TRANSPARENCY, MP_HRRPUA, MP_TAU_Q, MP_MATL_ID, MP_IGNITION_TEMPERATURE, MP_THICKNESS
-    bf_prop_free = MP_free
+    bf_props = MP_ID, MP_FYI, MP_RGB, MP_TRANSPARENCY, MP_HRRPUA, MP_TAU_Q, MP_MATL_ID, MP_IGNITION_TEMPERATURE, MP_THICKNESS, MP_free
 
 
 ### Object namelists and their specific properties
@@ -1227,8 +1187,7 @@ class ON_OBST(BFNamelist):
     fds_label = "OBST"
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_ID, OP_id_suffix, OP_FYI, OP_SURF_ID, OP_XB_solid, OP_OBST_THICKEN
-    bf_prop_free = OP_free
+    bf_props = OP_ID, OP_id_suffix, OP_FYI, OP_SURF_ID, OP_XB_solid, OP_OBST_THICKEN, OP_free
 
 
 # HOLE
@@ -1241,8 +1200,7 @@ class ON_HOLE(BFNamelist):
     fds_label = "HOLE"
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_ID, OP_FYI , OP_XB_solid
-    bf_prop_free = OP_free
+    bf_props = OP_ID, OP_FYI , OP_XB_solid, OP_free
     bf_appearance = {"draw_type": "WIRE"}
 
 
@@ -1256,8 +1214,7 @@ class ON_VENT(BFNamelist):
     fds_label = "VENT"
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_ID, OP_FYI, OP_SURF_ID, OP_XB_faces, OP_XYZ, OP_PB
-    bf_prop_free = OP_free
+    bf_props = OP_ID, OP_FYI, OP_SURF_ID, OP_XB_faces, OP_XYZ, OP_PB, OP_free
 
 
 # DEVC
@@ -1324,8 +1281,7 @@ class ON_DEVC(BFNamelist):
     fds_label = "DEVC"
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_ID, OP_FYI, OP_DEVC_QUANTITY, OP_DEVC_SETPOINT, OP_DEVC_INITIAL_STATE, OP_DEVC_LATCH, OP_DEVC_PROP_ID, OP_XB, OP_XYZ
-    bf_prop_free = OP_free
+    bf_props = OP_ID, OP_FYI, OP_DEVC_QUANTITY, OP_DEVC_SETPOINT, OP_DEVC_INITIAL_STATE, OP_DEVC_LATCH, OP_DEVC_PROP_ID, OP_XB, OP_XYZ, OP_free
     bf_appearance = {"draw_type": "WIRE"}
 
 
@@ -1348,8 +1304,7 @@ class ON_SLCF(BFNamelist):
     fds_label = "SLCF"
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_ID, OP_FYI, OP_DEVC_QUANTITY, OP_SLCF_VECTOR, OP_XB_faces, OP_PB
-    bf_prop_free = OP_free
+    bf_props = OP_ID, OP_FYI, OP_DEVC_QUANTITY, OP_SLCF_VECTOR, OP_XB_faces, OP_PB, OP_free
     bf_appearance = {"draw_type": "WIRE"}
 
 
@@ -1363,8 +1318,7 @@ class ON_PROF(BFNamelist):
     fds_label = "PROF"
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_ID, OP_FYI, OP_DEVC_QUANTITY, OP_XYZ
-    bf_prop_free = OP_free
+    bf_props = OP_ID, OP_FYI, OP_DEVC_QUANTITY, OP_XYZ, OP_free
     bf_appearance = {"draw_type": "WIRE"}
 
 
@@ -1413,8 +1367,7 @@ class ON_MESH(BFNamelist):
     fds_label = "MESH"
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_ID, OP_FYI, OP_MESH_IJK, OP_XB_bbox
-    bf_prop_free = OP_free
+    bf_props = OP_ID, OP_FYI, OP_MESH_IJK, OP_XB_bbox, OP_free
     bf_appearance = {"draw_type": "WIRE"}
 
 
@@ -1428,8 +1381,7 @@ class ON_INIT(BFNamelist):
     fds_label = "INIT"
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_ID, OP_FYI, OP_XB_solid, OP_XYZ
-    bf_prop_free = OP_free
+    bf_props = OP_ID, OP_FYI, OP_XB_solid, OP_XYZ, OP_free
     bf_appearance = {"draw_type": "WIRE"}
 
 
@@ -1443,8 +1395,7 @@ class ON_ZONE(BFNamelist):
     fds_label = "ZONE"
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_ID, OP_FYI, OP_XB_bbox
-    bf_prop_free = OP_free
+    bf_props = OP_ID, OP_FYI, OP_XB_bbox, OP_free
     bf_appearance = {"draw_type": "WIRE"}
 
 
@@ -1478,8 +1429,8 @@ class ON_free(BFNamelist):
     fds_label = None
     bpy_type = Object
     bf_prop_export = OP_export
-    bf_props = OP_free_namelist, OP_ID, OP_FYI, OP_SURF_ID, OP_XB, OP_XYZ, OP_PB 
-    bf_prop_free = OP_free
+    bf_props = OP_free_namelist, OP_ID, OP_FYI, OP_SURF_ID, OP_XB, OP_XYZ, OP_PB, OP_free
+    
 
 ### Update OP_namelist_cls (menu for Object namelist selection) with all defined namelists
 items = [bf_namelist.get_enum_item() for bf_namelist in BFNamelist.all if bf_namelist.bpy_type == Object]
@@ -1495,17 +1446,6 @@ MP_namelist_cls.bpy_other["items"] = items
 
 if DEBUG:
     print("\nBFNamelist.all:\n",BFNamelist.all)
-    print("\nBFNamelist.all_by_fds_label:\n",BFNamelist.all_by_fds_label)
-    print("\nBFNamelist.all_by_cls_name:\n",BFNamelist.all_by_cls_name)
-
-    print("\nOP_PB.all_bf_props_by_fds_label:\n",OP_PB.all_bf_props_by_fds_label)
-    print("\nOP_XB.all_bf_props_by_fds_label:\n",OP_XB.all_bf_props_by_fds_label)
-    print("\nOP_XB_bbox.all_bf_props_by_fds_label:\n",OP_XB_bbox.all_bf_props_by_fds_label)
-    print("\nOP_XB_solid.all_bf_props_by_fds_label:\n",OP_XB_solid.all_bf_props_by_fds_label)
-    print("\nOP_XB_faces.all_bf_props_by_fds_label:\n",OP_XB_faces.all_bf_props_by_fds_label)
-
-    print("\nON_DEVC.all_bf_props_by_fds_label:\n",ON_DEVC.all_bf_props_by_fds_label)
-    print("\nMN_SURF_burner.all_bf_props_by_fds_label:\n",MN_SURF_burner.all_bf_props_by_fds_label)  
-
     print("\nBFProp.all:\n",BFProp.all)
+    print()
 

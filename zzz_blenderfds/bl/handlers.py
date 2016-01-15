@@ -5,6 +5,8 @@ import bpy
 from .. import fds
 from .. import config
 
+from .operators import open_text_in_editor
+
 
 ### Register/Unregister
 
@@ -30,9 +32,15 @@ def _load_post(self):
     check_file_version(bpy.context)
     # Init FDS default materials
     if not fds.surf.has_predefined(): bpy.ops.material.bf_set_predefined()
-    # Init metric units
-    for scene in bpy.data.scenes: scene.unit_settings.system = 'METRIC'
-
+    # Init metric units, render engine
+    for scene in bpy.data.scenes:
+        scene.unit_settings.system = 'METRIC'
+        scene.render.engine = 'CYCLES' # for transparency visualisation
+    # Open the right file in editor
+    context = bpy.context
+    text_name = bpy.context.scene.bf_head_free_text
+    open_text_in_editor(context, text_name)
+    
 @bpy.app.handlers.persistent
 def _save_pre(self):
     """This function is run before each time a Blender file is saved"""
@@ -65,20 +73,20 @@ def check_file_version(context):
     # Protect the following bf_dialog operator, if Blender is still not ready to show it
     if not context.window: return
     # Check older
-    if file_version < (3,0,0): # Check latest file format change
+    if file_version < (4,0,0): # Check latest file format change
         msg = "Check your old input data!"
         description = \
-"""This file was created on BlenderFDS {}. Automatic
-data conversion to current BlenderFDS and FDS format is not
-supported.""".format(file_version_string)
+"""This file was created on BlenderFDS {}.
+Automatic data conversion to current BlenderFDS
+and FDS format is not supported.""".format(file_version_string)
         bpy.ops.wm.bf_dialog('INVOKE_DEFAULT', msg=msg, description=description, type="ERROR")
     # Check newer
     elif file_version > config.supported_file_version:
         msg = "Install BlenderFDS {} for full support of your data!".format(file_version_string)
         description = \
-"""This file was created on BlenderFDS {}. You are
-currently using an older version, new features
-are not supported.""".format(file_version_string)
+"""This file was created on BlenderFDS {}.
+You are currently using an older version,
+new features are not supported.""".format(file_version_string)
         bpy.ops.wm.bf_dialog('INVOKE_DEFAULT', msg=msg, description=description, type="ERROR")
 
 def set_file_version(context):
