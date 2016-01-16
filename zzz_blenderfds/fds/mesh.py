@@ -35,7 +35,7 @@ def get_cell_sizes(context, ob):
     """Get MESH cell sizes from object"""
     # Init
     bf_mesh_ijk = ob.bf_mesh_ijk
-    dimensions = geometry.utils.get_global_dimensions(context, ob)
+    dimensions = geometry.geom_utils.get_global_dimensions(context, ob)
     return [
         dimensions[0] / bf_mesh_ijk[0],
         dimensions[1] / bf_mesh_ijk[1],

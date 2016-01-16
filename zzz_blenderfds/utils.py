@@ -1,9 +1,11 @@
 """BlenderFDS, other utilities"""
 
-def isiterable(var):
+# Check if a quantity is an iterable type
+
+def is_iterable(var):
     """Check if var is iterable or not
     
-    >>> isiterable("hello"), isiterable((1,2,3)), isiterable({1,2,3})
+    >>> is_iterable("hello"), is_iterable((1,2,3)), is_iterable({1,2,3})
     (False, True, True)
     """
     # A str is iterable in Py... not what I want
@@ -13,6 +15,8 @@ def isiterable(var):
         for item in var: break
     except TypeError: return False
     return True
+
+# Collection of classes
 
 class ClsList(list):
     """List of classes"""
@@ -41,3 +45,19 @@ class ClsList(list):
         for value in self:
             if value.fds_label == key: return value
         return default
+
+# Write to file
+        
+def is_writable(filepath):
+    """Check if filepath is writable"""
+    return write_to_file(filepath, "Test")
+
+def write_to_file(filepath, text_file):
+    """Write text_file to filepath"""
+    if text_file is None: text_file = str()
+    try:
+        with open(filepath, "w") as out_file: out_file.write(text_file)
+        return True
+    except IOError:
+        return False
+

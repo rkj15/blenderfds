@@ -41,7 +41,7 @@ bl_info = {
 
 import bpy
 from .types import BFNamelist, BFProp
-from .fds import lang
+from .fds import lang # Import the FDS language
 from .bl import ui, handlers
 
 ### Registration/Unregistration

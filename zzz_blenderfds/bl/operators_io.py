@@ -5,7 +5,9 @@ import bpy, os.path, sys
 from bpy.types import Operator
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
-from .. import config
+from ..exceptions import BFException
+from ..utils import is_writable, write_to_file
+
 
 DEBUG = False
 
@@ -166,6 +168,15 @@ class SCENE_OT_bf_load_misc(Operator, ImportHelperSnippet):
 
 ### Import function
 
+def _view3d_view_all(context):
+    """View all elements on the 3dview. Override context."""
+    for area in context.screen.areas:
+        if area.type == 'VIEW_3D':
+            for region in area.regions:
+                if region.type == 'WINDOW':
+                    override = {'area': area, 'region': region, 'edit_object': bpy.context.edit_object}
+                    bpy.ops.view3d.view_all(override)
+
 def bl_scene_from_fds_case(operator, context, snippet=False, filepath=""):
     """Import FDS file to a Blender Scene"""
 
@@ -197,24 +208,12 @@ def bl_scene_from_fds_case(operator, context, snippet=False, filepath=""):
         operator.report({"ERROR"}, str(err))
         return {'CANCELLED'}
 
+    # Adapt 3DView
+    _view3d_view_all(context)
+
     # End
     w.cursor_modal_restore()
     print("BFDS: io.scene_from_fds: End.")
     operator.report({"INFO"}, "FDS File imported")
     return {'FINISHED'}
 
-
-### Helper functions
-
-def is_writable(filepath):
-    """Check if filepath is writable"""
-    return write_to_file(filepath, "Test")
-
-def write_to_file(filepath, text_file):
-    """Write text_file to filepath"""
-    if text_file is None: text_file = str()
-    try:
-        with open(filepath, "w") as out_file: out_file.write(text_file)
-        return True
-    except IOError:
-        return False

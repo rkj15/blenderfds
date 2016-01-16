@@ -7,9 +7,7 @@ from ..types import BFNamelist
 from ..exceptions import BFException
 from .. import geometry
 from .. import fds
-
 from .. import config
-from .operators import open_text_in_editor
 
 DEBUG = False
 
@@ -219,13 +217,13 @@ class BFScene():
         if bpy_type == bpy.types.Scene: element = self
         # Is Object
         elif bpy_type == bpy.types.Object:
-            element = geometry.utils.get_object_by_name(context, name=imported_element_name)
-            if not element: element = geometry.utils.get_new_object(context, name="New {}".format(fds_label))
+            element = geometry.geom_utils.get_object_by_name(context, name=imported_element_name)
+            if not element: element = geometry.geom_utils.get_new_object(context, name="New {}".format(fds_label))
             element.bf_namelist_cls = bf_namelist_cls.__name__ # Set link to namelist
         # Is Material
         elif bpy_type == bpy.types.Material:
-            element = geometry.utils.get_material_by_name(context, name=imported_element_name)
-            if not element: element = geometry.utils.get_new_material(context, name="New {}".format(fds_label))
+            element = geometry.geom_utils.get_material_by_name(context, name=imported_element_name)
+            if not element: element = geometry.geom_utils.get_new_material(context, name="New {}".format(fds_label))
         # Is Unknown
         else: raise ValueError("BFDS: BFScene.from_fds: Unrecognized namelist type!")
         # Appearance
@@ -234,11 +232,8 @@ class BFScene():
 
     def _save_imported_unmanaged_tokens(self, context, free_texts) -> "None":
         """Save unmanaged tokens to free text."""
-        # If not existing, create
-        if not self.bf_head_free_text:
-            self.bf_head_free_text = "HEAD free text ({})".format(self.name)    
-            bpy.data.texts.new(self.bf_head_free_text)
-        bf_head_free_text = self.bf_head_free_text
+        # Get or create free text file
+        bf_head_free_text = fds.head.set_free_text_file(context, self)
         # Prepare
         free_texts.insert(0,"! Imported\n")
         if bpy.data.texts[bf_head_free_text]:
@@ -246,7 +241,6 @@ class BFScene():
             free_texts.append(bpy.data.texts[bf_head_free_text].as_string())
         # Write and show
         bpy.data.texts[bf_head_free_text].from_string("\n".join(free_texts))
-        open_text_in_editor(context, bf_head_free_text)
 
     def from_fds(self, context, value, snippet=False):
         """Import a text in FDS notation into self. On error raise BFException.

@@ -4,10 +4,9 @@ import bpy, sys
 from bpy.types import Operator
 from bpy.props import *
 
-from ..types import BFNamelist, BFProp
+from ..types import BFProp
 from .. import fds
 from .. import geometry
-from ..fds.lang import OP_SURF_ID
 
 ### Dialog box
 
@@ -134,7 +133,7 @@ class OBJECT_OT_bf_correct_ijk(Operator):
 
 ### Show FDS export string
 
-class common_bf_show_fds_code():
+class _COMMON_bf_show_fds_code():
 
     def draw(self, context):
         layout = self.layout
@@ -164,7 +163,7 @@ class common_bf_show_fds_code():
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
 
-class OBJECT_OT_bf_show_fds_code(common_bf_show_fds_code, Operator):
+class OBJECT_OT_bf_show_fds_code(_COMMON_bf_show_fds_code, Operator):
     bl_label = "Show FDS Code From Blender Object"
     bl_idname = "object.bf_show_fds_code"
     bl_description = "Show FDS code exported from Blender Object"
@@ -173,7 +172,7 @@ class OBJECT_OT_bf_show_fds_code(common_bf_show_fds_code, Operator):
         ob = context.active_object
         self.bf_fds_code = ob.to_fds(context)
 
-class MATERIAL_OT_bf_show_fds_code(common_bf_show_fds_code, Operator):
+class MATERIAL_OT_bf_show_fds_code(_COMMON_bf_show_fds_code, Operator):
     bl_label = "Show FDS Code From Blender Material"
     bl_idname = "material.bf_show_fds_code"
     bl_description = "Show FDS code exported from Blender Material"
@@ -182,7 +181,7 @@ class MATERIAL_OT_bf_show_fds_code(common_bf_show_fds_code, Operator):
         ma = context.active_object.active_material
         self.bf_fds_code = ma.to_fds(context)
 
-class SCENE_OT_bf_show_fds_code(common_bf_show_fds_code, Operator):
+class SCENE_OT_bf_show_fds_code(_COMMON_bf_show_fds_code, Operator):
     bl_label = "Show FDS Code From Blender Scene"
     bl_idname = "scene.bf_show_fds_code"
     bl_description = "Show FDS code exported from Blender SCene"
@@ -193,7 +192,7 @@ class SCENE_OT_bf_show_fds_code(common_bf_show_fds_code, Operator):
 
 ### Copy properties between elements
 
-def bf_props_copy(context, source_element, destination_elements):
+def _bf_props_copy(context, source_element, destination_elements):
     """Copy all BFProp from source_element to destination_elements"""
     for bf_prop in BFProp.all:
         if not bf_prop.overwrite: continue # Do not overwrite protected BFProp
@@ -226,7 +225,7 @@ class SCENE_OT_bf_copy_props_to_scene(Operator):
             self.report({"WARNING"}, "No source scene")
             return{'CANCELLED'}
         # Copy
-        bf_props_copy(context, source_element, destination_elements)
+        _bf_props_copy(context, source_element, destination_elements)
         self.report({"INFO"}, "Copied to destination scene")
         return {'FINISHED'}
 
@@ -256,7 +255,7 @@ class OBJECT_OT_bf_copy_FDS_properties_to_sel_obs(Operator):
             self.report({"WARNING"}, "No source object")
             return{'CANCELLED'}
         # Copy
-        bf_props_copy(context, source_element, destination_elements)
+        _bf_props_copy(context, source_element, destination_elements)
         self.report({"INFO"}, "Copied to selected objects")
         return {'FINISHED'}
         
@@ -377,27 +376,6 @@ class SCENE_OT_bf_del_all_tmp_objects(Operator):
         return {'FINISHED'}
 
 ### Open text editor with right text displayed
-
-def set_free_text_file(scene): # TODO align with from_fds
-    if not scene.bf_head_free_text:
-        # Empty field
-        scene.bf_head_free_text = "HEAD free text ({})".format(scene.name)
-    if scene.bf_head_free_text not in bpy.data.texts:
-        # No linked file, create
-        bpy.data.texts.new(scene.bf_head_free_text)
-        
-def open_text_in_editor(context, text_name):
-    # Text Editor already displayed?
-    area_te = None
-    for window in context.window_manager.windows:
-        for area in window.screen.areas:
-            if 'TEXT_EDITOR' == area.type:
-                area_te = area
-                break
-    # If Text Editor is displayed, show requested text
-    if area_te:
-        if text_name in bpy.data.texts:
-            area_te.spaces[0].text = bpy.data.texts[text_name]
     
 class SCENE_OT_bf_edit_head_free_text(Operator):
     bl_label = "Edit"
@@ -405,10 +383,8 @@ class SCENE_OT_bf_edit_head_free_text(Operator):
     bl_description = "Edit free text file in separate editor"
 
     def execute(self, context):
-        scene = context.scene
-        set_free_text_file(scene)
-        open_text_in_editor(context, scene.bf_head_free_text)
-        self.report({"INFO"}, "See '{}' in the text editor".format(scene.bf_head_free_text))
+        bf_head_free_text = fds.head.set_free_text_file(context, context.scene)
+        self.report({"INFO"}, "See '{}' in the text editor".format(bf_head_free_text))
         return {'FINISHED'}
 
 ### Set TAU_Q ramp according to norms
@@ -461,8 +437,8 @@ class MATERIAL_OT_bf_set_tau_q(Operator):
         obs = (ob for ob in context.scene.objects \
             if ob.type == "MESH" and ob.bf_export \
             and ob.active_material == ma \
-            and OP_SURF_ID in ob.bf_namelist.all_bf_props)
-        for ob in obs: burner_area += geometry.utils.get_global_area(context, ob)
+            and ob.bf_namelist.all_bf_props.get("OP_SURF_ID"))
+        for ob in obs: burner_area += geometry.geom_utils.get_global_area(context, ob)
         # Set defaults to estimated values
         self.bf_burner_area = burner_area
         self.bf_hrr_max = ma.bf_hrrpua * burner_area

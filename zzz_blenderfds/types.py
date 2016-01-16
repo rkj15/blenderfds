@@ -1,10 +1,10 @@
 """BlenderFDS, types"""
 
 from bpy.props import *
-from bpy.types import Scene, Object, Material
+from bpy.types import Object
 
 from .exceptions import BFException
-from .utils import isiterable, ClsList
+from .utils import is_iterable, ClsList
 
 from . import config
 
@@ -136,7 +136,7 @@ class _BFCommon():
         except BFException as err: err.draw(context, layout)
         # Draw infos
         for info in self.infos:
-            if isiterable(info):
+            if is_iterable(info):
                 row = layout.split(.7)
                 row.label(icon="INFO", text=info[0])
                 row.operator(info[1])
@@ -221,7 +221,7 @@ class BFProp(_BFCommon):
         #   ID='example' or PI=3.14 or COLOR=3,4,5
         if value is None: return None
         # If value is not an iterable, then put it in a tuple
-        if not isiterable(value): values = tuple((value,)) 
+        if not is_iterable(value): values = tuple((value,)) 
         else: values = value
         # Check first element of the iterable and choose formatting
         if   isinstance(values[0], bool):
@@ -312,12 +312,12 @@ class BFNamelist(_BFCommon):
         # Set fds_label, if empty use first param (OP_free_namelist)
         fds_label = "".join(("&", self.fds_label or params.pop(0), " "))
         # Set info
-        infos = [isiterable(info) and info[0] or info for info in self.infos]
+        infos = [is_iterable(info) and info[0] or info for info in self.infos]
         info = "".join(("! {}\n".format(info) for info in infos))
         # Extract the first and only multiparams from params
         multiparams = None
         for param in params:
-            if isiterable(param):
+            if is_iterable(param):
                 multiparams = param
                 params.remove(param)
                 # ... then remove ordinary single ID

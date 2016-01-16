@@ -3,7 +3,7 @@
 import bpy
 from time import time
 
-from .utils import *
+from .geom_utils import *
 
 ### from None
 

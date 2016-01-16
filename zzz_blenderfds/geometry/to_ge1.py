@@ -2,7 +2,7 @@
 
 import bpy
 
-from .utils import *
+from .geom_utils import *
 
 # GE1 file format:
 

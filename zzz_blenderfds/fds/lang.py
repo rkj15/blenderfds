@@ -1164,7 +1164,7 @@ class OP_SURF_ID(BFProp):
         if self.element.active_material: return self.element.active_material.name
 
     def set_value(self, context, value):
-        self.element.active_material = geometry.utils.get_material(context, str(value))
+        self.element.active_material = geometry.geom_utils.get_material(context, str(value))
 
 @subscribe
 class OP_OBST_THICKEN(BFBoolProp):

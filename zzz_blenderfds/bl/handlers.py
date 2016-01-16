@@ -5,8 +5,6 @@ import bpy
 from .. import fds
 from .. import config
 
-from .operators import open_text_in_editor
-
 DEBUG = False
 
 ### Register/Unregister
@@ -39,8 +37,7 @@ def _load_post(self):
         scene.render.engine = 'CYCLES' # for transparency visualisation
     # Open the right file in editor
     context = bpy.context
-    text_name = bpy.context.scene.bf_head_free_text
-    open_text_in_editor(context, text_name)
+    fds.head.set_free_text_file(context, context.scene)
     
 @bpy.app.handlers.persistent
 def _save_pre(self):

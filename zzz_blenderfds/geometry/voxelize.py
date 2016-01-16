@@ -4,7 +4,7 @@ import bpy
 from time import time
 
 from ..types import BFException
-from .utils import * 
+from .geom_utils import * 
 from . import tmp_objects
 
 DEBUG = False

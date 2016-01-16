@@ -2,7 +2,7 @@
 
 from bpy.types import Panel
 
-from ..fds.lang import SN_HEAD, SN_TIME, SN_DUMP, SN_MISC, SN_REAC, OP_SURF_ID
+from ..fds.lang import SN_HEAD, SN_TIME, SN_DUMP, SN_MISC, SN_REAC, OP_SURF_ID # TODO migrate to new search [" "]
 
 ### Scene panels
 

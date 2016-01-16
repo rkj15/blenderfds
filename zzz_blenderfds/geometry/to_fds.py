@@ -2,7 +2,7 @@
 
 import bpy
 from time import time
-from .utils import *
+from .geom_utils import *
 from .voxelize import voxelize
 
 DEBUG = False
