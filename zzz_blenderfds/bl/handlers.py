@@ -7,18 +7,19 @@ from .. import config
 
 from .operators import open_text_in_editor
 
+DEBUG = False
 
 ### Register/Unregister
 
 def register():
     """Register handlers"""
-    print("BFDS: handlers.py register")
+    DEBUG and print("BFDS: handlers.py register")
     bpy.app.handlers.load_post.append(_load_post)
     bpy.app.handlers.save_pre.append(_save_pre)
 
 def unregister():
     """Unregister handlers"""
-    print("BFDS: handlers.py unregister")
+    DEBUG and print("BFDS: handlers.py unregister")
     bpy.app.handlers.load_post.append(_load_post)
     bpy.app.handlers.save_pre.append(_save_pre)
 
