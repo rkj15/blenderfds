@@ -48,7 +48,6 @@ class _BFCommon():
     enum_id = 0               # Unique integer id for EnumProperty
     fds_label = None          # FDS label as "OBST", "ID", ...
 
-    bf_sys = False            # This property needs early registration
     bf_prop_export = None     # Class of type BFExportProp, used for setting if exported
     bf_props =  ClsList()     # Collection of related BFProp
 
@@ -122,9 +121,6 @@ class _BFCommon():
                 cls.bpy_idname,
                 cls.bpy_prop(name=cls.label, description=cls.description, default=cls.bpy_default, **cls.bpy_other)
             )
-        # Register bf_prop_export, and all bf_props
-        if cls.bf_prop_export: cls.bf_prop_export.register()
-        for bf_prop in cls.bf_props: bf_prop.register()
 
     @classmethod
     def unregister(cls):
@@ -492,7 +488,6 @@ class BFFreeProp(BFProp):
 class BFGeometryProp(BFProp):
     """This specialized BFProp is used as type for geometric parameters properties."""
     bpy_type = Object
-    bf_sys = True
     bpy_prop = EnumProperty
     allowed_items = "NONE", # list of allowed items for EnumProperty
 

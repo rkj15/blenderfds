@@ -48,13 +48,12 @@ from .bl import ui, handlers
 
 def register():
     """Register Blender types"""
-    # First, register system bf_props
-    for bf_prop in BFNamelist.all:
-        if bf_prop.bf_sys: bf_prop.register()
-    # Then, register bf_namelists
-    for bf_namelist in BFProp.all: bf_namelist.register()
+    # Register module
+    bpy.utils.register_module(__name__)    
+    # Register all BFProps
+    for bf_namelist in BFNamelist.all: bf_namelist.register() # may contain a bpy_idname
+    for bf_prop in BFProp.all: bf_prop.register()    
     # Blender things
-    bpy.utils.register_module(__name__)
     ui.register()
     handlers.register()
 

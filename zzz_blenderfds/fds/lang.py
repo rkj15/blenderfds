@@ -38,7 +38,6 @@ def update_OP_namelist_cls(self, context):
 class OP_namelist_cls(BFProp):
     label = "Namelist cls"
     description = "Identification of FDS namelist cls"
-    bf_sys = True
     bpy_type = Object
     bpy_idname = "bf_namelist_cls"
     bpy_prop = EnumProperty
@@ -73,7 +72,6 @@ class MP_namelist_cls(BFProp):
 class OP_is_tmp(BFProp):
     label = "Is Tmp"
     description = "Set if this element is tmp"
-    bf_sys = True
     bpy_type = Object
     bpy_idname = "bf_is_tmp"
     bpy_prop = BoolProperty
@@ -83,7 +81,6 @@ class OP_is_tmp(BFProp):
 class OP_has_tmp(BFProp):
     label = "Has Tmp"
     description = "Set if this element has a tmp element companion"
-    bf_sys = True
     bpy_type = Object
     bpy_idname = "bf_has_tmp"
     bpy_prop = BoolProperty
@@ -95,7 +92,6 @@ class OP_has_tmp(BFProp):
 class SP_file_version(BFProp):
     label = "BlenderFDS File Version"
     description = "BlenderFDS file format version"
-    bf_sys = True
     bpy_type = Scene
     bpy_idname = "bf_file_version"
     bpy_prop = IntVectorProperty
@@ -108,7 +104,6 @@ class SP_file_version(BFProp):
 class OP_namelist_old_1(BFStringProp):
     label = "Old Namelist 1"
     description = "Old type of FDS namelist 1"
-    bf_sys = True
     bpy_type = Object
     bpy_idname = "bf_nl"
 
@@ -408,6 +403,7 @@ def update_bf_pb(self, context):
         if self.bf_xyz == "VERTICES": self.bf_xyz = "NONE"
 
 # @subscribe OP_PB later, because OP_PB* are defined later
+# if not dependent on OP_PB they are not registered
 class OP_PB(BFPBProp):
     # bf_props = OP_PBX, OP_PBY, OP_PBZ are defined later
     bpy_prop = EnumProperty
