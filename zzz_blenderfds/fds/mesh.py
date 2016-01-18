@@ -66,7 +66,7 @@ def set_cell_sizes(context, ob, desired_cell_sizes, snap_to_origin=True, poisson
     # Send new geometry to object, do not change the center
     ob.bf_mesh_ijk = new_ijk
     geometry.from_fds.xbs_to_ob(((x0, x1, y0, y1, z0, z1),), context, ob, bf_xb="BBOX", update_center=False)
-    
+  
 def get_cell_infos(context, ob):
     """Get many cell infos from object"""
     # Init
@@ -77,8 +77,13 @@ def get_cell_infos(context, ob):
     # Cell number
     cell_number = bf_mesh_ijk[0] * bf_mesh_ijk[1] * bf_mesh_ijk[2]
     # Cell aspect ratio
-    cell_sizes.sort()
-    try: cell_aspect_ratio = max(cell_sizes[2] / cell_sizes[0], cell_sizes[2] / cell_sizes[1], cell_sizes[1] / cell_sizes[0])
+    cell_sizes_sorted = sorted(cell_sizes)
+    try: cell_aspect_ratio = max(
+        cell_sizes_sorted[2] / cell_sizes_sorted[0],
+        cell_sizes_sorted[2] / cell_sizes_sorted[1],
+        cell_sizes_sorted[1] / cell_sizes_sorted[0]
+    )
     except ZeroDivisionError: cell_aspect_ratio = 999.
     # Return
     return has_good_ijk, cell_sizes, cell_number, cell_aspect_ratio
+    
