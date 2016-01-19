@@ -6,8 +6,7 @@
 
 The NIST Fire Dynamics Simulator (FDS) is a computational fluid dynamics model of fire-driven fluid flow. The software solves numerically a form of the Navier-Stokes equations appropriate for low-speed, thermally-driven flow, with an emphasis on smoke and heat transport from fires.
 
-![http://blenderfds.googlecode.com/svn/wiki/images/screen/fds-smv.png](http://blenderfds.googlecode.com/svn/wiki/images/screen/fds-smv.png)
-FIXME
+![FDS-SMV](http://firetools.github.com/blenderfds/gh-pages/wiki/images/screen/fds-smv.png)
 
 ## Who uses FDS? ##
 
@@ -26,7 +25,6 @@ There you can find tutorials, manuals, videos, and help from the Community.
 
 ## Free coursebook, Fire Simulation for Engineers ##
 
-When starting, FDS official documentation can appear a little overwhelming. This is why a simpler wikibook is currently being worked on: [Fire Simulation for Engineers](https://en.wikibooks.org/wiki/Fire_Simulation_for_Engineers), that complements [FDS official documentation](http://firemodels.github.io/fds-smv/manuals.html).
+At start, FDS official documentation can appear a little overwhelming. This is why a simpler wikibook is currently being worked on: [Fire Simulation for Engineers](https://en.wikibooks.org/wiki/Fire_Simulation_for_Engineers), that complements [FDS official documentation](http://firemodels.github.io/fds-smv/manuals.html).
 
-![http://blenderfds.googlecode.com/svn/wiki/images/screen/intro_to_fire_sim_cover.png](http://blenderfds.googlecode.com/svn/wiki/images/screen/intro_to_fire_sim_cover.png)
-FIXME
+![Fire Sim for Engineers](http://firetools.github.com/blenderfds/gh-pages/wiki/images/screen/intro_to_fire_sim_cover.png)

@@ -3,16 +3,16 @@
 |**Work in progress** for BlenderFDS 4. |
 
   * Before BlenderFDS
-    * [Learning FDS](BeforeLearningFDS.md)
-    * [Learning Blender](BeforeLearningBlender.md)
+    * [Learning FDS](LearningFDS.md)
+    * [Learning Blender](LearningBlender.md)
   * BlenderFDS Setup
-    * [Download](SetupDownload.md)
-    * [Install](SetupInstall.md)
-    * [Uninstall](SetupUninstall.md)
-    * [Update](SetupUpdate.md)
+    * [Download](Download.md)
+    * [Install](Install.md)
+    * [Uninstall](Uninstall.md)
+    * [Update](Update.md)
   * Inner workings
     * [Idea](InnerIdea.md)
-    * [Quality assurance](InnerSQA.md)
+    * [Quality assurance](SQA.md)
     * Curved geometries to FDS (TODO)
   * Tutorial (TODO)
   * Guide
