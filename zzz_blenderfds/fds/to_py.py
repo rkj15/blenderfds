@@ -1,5 +1,8 @@
 """BlenderFDS, tokenize FDS file in a readable notation"""
 
+# TODO use search instead of match for optimization
+# TODO generalize regex
+
 import re
 
 DEBUG = False
