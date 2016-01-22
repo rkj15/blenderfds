@@ -267,7 +267,7 @@ class BFScene():
             if not bf_namelist_cls:
                 free_texts.append(fds_original)
                 continue
-            # If snippet, check if overwrite of namelist is allowed (eg. SN_HEAD...)
+            # If snippet, check if overwrite of namelist is allowed (eg. SN_HEAD...) FIXME
             if snippet and not bf_namelist_cls.overwrite: continue
             # Get or create element, then instanciate BFNamelist
             element = self._get_imported_element(context, bf_namelist_cls, fds_label, fds_value)

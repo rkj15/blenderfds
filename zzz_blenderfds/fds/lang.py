@@ -284,7 +284,7 @@ class OP_XB(BFXBProp):
                 bf_xb=self.element.bf_xb
             ) # Send existing element.bf_xb for evaluation.
         # TODO: EDGE recognition!
-        except: raise BFException(self, "Error in setting '{}' value".format(value))# FIXME test        
+        except: raise BFException(self, "Error in setting '{}' value".format(value))
         
 @subscribe
 class OP_XB_bbox(OP_XB):
@@ -393,7 +393,7 @@ class OP_XYZ(BFXYZProp):
                 ob=self.element,
                 bf_xyz=self.element.bf_xyz
             ) # Send existing self.element.bf_xyz for evaluation
-        except: raise BFException(self, "Error in setting '{}' value".format(value))# FIXME test        
+        except: raise BFException(self, "Error in setting '{}' value".format(value))
 
 # PB
 
@@ -473,7 +473,7 @@ class OP_PB(BFPBProp):
                 ob=self.element,
                 bf_pb=self.element.bf_pb
             ) # Send existing self.element.bf_pb for evaluation
-        except: raise BFException(self, "Error in setting '{}' value".format(value))# FIXME test        
+        except: raise BFException(self, "Error in setting '{}' value".format(value))
 
 
 @subscribe
@@ -913,7 +913,7 @@ class MP_COLOR(BFNoAutoUIMod, BFNoAutoExportMod, BFProp): # For COLOR trapping d
     bpy_prop = None # Do not register
     bpy_idname = "diffuse_color"
 
-    def from_fds(self, context, value): # FIXME test
+    def from_fds(self, context, value):
         try: value = tables.colors[value]
         except KeyError: raise BFException(self, "Unknown color name '{}'".format(value))
         self.element.diffuse_color = value[0]/255, value[1]/255, value[2]/255
@@ -928,21 +928,14 @@ class MP_RGB(BFNoAutoUIMod, BFProp): # ui is statically added in the material pa
     bpy_prop = None # Do not register
     bpy_idname = "diffuse_color"
 
-    def to_fds(self, context): # FIXME test
+    def to_fds(self, context):
         color = self.element.diffuse_color
         return "RGB={},{},{}".format(int(color[0]*255), int(color[1]*255), int(color[2]*255))   
-
-#    def get_value(self):
-#        color = self.element.diffuse_color
-#        return int(color[0]*255), int(color[1]*255), int(color[2]*255)
 
     def from_fds(self, context, value):
         try: self.element.diffuse_color = value[0]/255, value[1]/255, value[2]/255
         except: raise BFException(self, "Wrong RGB color value '{}'".format(value))
 
-#    def set_value(self, context, value): # FIXME from_fds
-#        try: self.element.diffuse_color = value[0]/255, value[1]/255, value[2]/255
-#        except: raise BFException(self, "Unknown RGB color value '{}'".format(value))
 
 @subscribe
 class MP_TRANSPARENCY(BFNoAutoUIMod, BFProp): # ui is statically added in the material panel
@@ -1180,19 +1173,13 @@ class OP_SURF_ID(BFProp):
     def get_exported(self, context):
         return self.element.active_material and self.element.active_material.bf_export
 
-    def to_fds(self, context): # FIXME test
+    def to_fds(self, context):
         if self.get_exported(context): return "SURF_ID='{}'".format(self.element.active_material.name)
         
-#    def get_value(self):
-#        if self.element.active_material: return self.element.active_material.name
-
-    def from_fds(self, context, value): # FIXME test
+    def from_fds(self, context, value):
         try: self.element.active_material = geometry.geom_utils.get_material(context, str(value))
         except: raise BFException(self, "Error in setting '{}' Blender material".format(value))
 
-#    def set_value(self, context, value):
-#        try: self.element.active_material = geometry.geom_utils.get_material(context, str(value))
-#        except: raise BFException(self, "Error in setting '{}' Blender material".format(value))
 
 @subscribe
 class OP_OBST_THICKEN(BFBoolProp):

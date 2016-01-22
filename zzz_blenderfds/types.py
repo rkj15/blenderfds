@@ -367,7 +367,7 @@ class BFNamelist(_BFCommon):
 
     # Import
 
-    def from_fds(self, context, tokens, snippet=False):
+    def from_fds(self, context, tokens, snippet=False): # FIXME no snippet
         """Set my properties from imported FDS tokens, on error raise BFException.
         Tokens have the following format: ((fds_original, fds_label, fds_value), ...)
         Eg: (("ID='example'", "ID", "example"), ("XB=...", "XB", (1., 2., 3., 4., 5., 6.,)), ...)
