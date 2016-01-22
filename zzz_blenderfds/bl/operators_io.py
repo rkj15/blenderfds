@@ -9,7 +9,7 @@ from ..exceptions import BFException
 from ..utils import is_writable, write_to_file
 
 
-DEBUG = False
+DEBUG = True
 
 ### Export scene to FDS
 
@@ -187,12 +187,13 @@ def bl_scene_from_fds_case(operator, context, snippet=False, filepath=""):
         # Import into current scene
         sc = context.scene
     else:
-        # Create new scene, switch and import to it
-        sc = bpy.data.scenes.new("New")
+        # Create new scene and set as default
+        sc = bpy.data.scenes.new("imported_case")
         bpy.context.screen.scene = sc
+        sc.set_default_appearance(context)
 
     # Read file
-    print("BFDS: operators_io.bl_scene_from_fds_case: Importing:", filepath)
+    DEBUG and print("BFDS: operators_io.bl_scene_from_fds_case: Importing:", filepath)
     try:
         with open(filepath, "r") as infile:
             imported_value = infile.read()
@@ -213,7 +214,7 @@ def bl_scene_from_fds_case(operator, context, snippet=False, filepath=""):
 
     # End
     w.cursor_modal_restore()
-    print("BFDS: io.scene_from_fds: End.")
+    DEBUG and print("BFDS: operators_io.bl_scene_from_fds_case: End.")
     operator.report({"INFO"}, "FDS File imported")
     return {'FINISHED'}
 
