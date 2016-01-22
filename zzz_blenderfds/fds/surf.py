@@ -10,9 +10,9 @@ def has_predefined():
 
 def set_predefined(context):
     """Set BlenderFDS predefined materials/bcs"""
-    value = """
-&SURF ID='INERT'  RGB=204,204,51 FYI='Predefined SURF' /
-&SURF ID='OPEN'   RGB=51,204,204 FYI='Predefined SURF' TRANSPARENCY=.2 /
-&SURF ID='MIRROR' RGB=51,51,204  FYI='Predefined SURF' /
-    """
-    context.scene.from_fds(context, value)
+    mas = bpy.data.materials.keys()
+    value = str()
+    if "INERT" not in mas:  value += "&SURF ID='INERT'  RGB=204,204,51 FYI='Predefined SURF' /\n"
+    if "OPEN" not in mas:   value += "&SURF ID='OPEN'   RGB=51,204,204 FYI='Predefined SURF' TRANSPARENCY=.2 /\n"
+    if "MIRROR" not in mas: value += "&SURF ID='MIRROR' RGB=51,51,204  FYI='Predefined SURF' /\n"
+    if value: context.scene.from_fds(context, value)
