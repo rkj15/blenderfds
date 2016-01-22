@@ -117,7 +117,7 @@ def update_bf_xb_voxel_size(self, context):
     geometry.tmp_objects.del_all(context)
 
 @subscribe
-class OP_XB_precise_bbox(BFNoAutoMod, BFProp):
+class OP_XB_precise_bbox(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
     label = "Precise positioning"
     description = "Center voxels/pixels to original bounding box"
     bpy_type = Object
@@ -129,7 +129,7 @@ class OP_XB_precise_bbox(BFNoAutoMod, BFProp):
     }
 
 @subscribe
-class OP_XB_custom_voxel(BFNoAutoMod, BFProp):
+class OP_XB_custom_voxel(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
     label = "Use custom settings"
     description = "Use custom settings for object voxelization/pixelization"
     bpy_type = Object
@@ -141,7 +141,7 @@ class OP_XB_custom_voxel(BFNoAutoMod, BFProp):
     }
 
 @subscribe
-class OP_XB_voxel_size(BFNoAutoMod, BFProp):
+class OP_XB_voxel_size(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
     label = "Resolution"
     description = "Resolution for object voxelization/pixelization"
     bpy_type = Object
@@ -272,18 +272,20 @@ class OP_XB(BFXBProp):
             return [_format_xb(xb, name, i) for i, xb in enumerate(xbs)]
 
     def from_fds(self, context, value):
-        # Correct for scale_lenght
-        scale_length = context.scene.unit_settings.scale_length
-        value = [coo / scale_length for coo in value]
-        # Set value
-        geometry.from_fds.xbs_to_ob(
-            xbs=(value,),
-            context=context,
-            ob=self.element,
-            bf_xb=self.element.bf_xb
-        ) # Send existing element.bf_xb for evaluation.
+        try:
+            # Correct for scale_lenght
+            scale_length = context.scene.unit_settings.scale_length
+            value = [coo / scale_length for coo in value]
+            # Set value
+            geometry.from_fds.xbs_to_ob(
+                xbs=(value,),
+                context=context,
+                ob=self.element,
+                bf_xb=self.element.bf_xb
+            ) # Send existing element.bf_xb for evaluation.
         # TODO: EDGE recognition!
-
+        except: raise BFException(self, "Error in setting '{}' value".format(value))# FIXME test        
+        
 @subscribe
 class OP_XB_bbox(OP_XB):
     allowed_items = "NONE", "BBOX"
@@ -380,16 +382,18 @@ class OP_XYZ(BFXYZProp):
             return [_format_xyz(xyz, name, i) for i, xyz in enumerate(xyzs)]
 
     def from_fds(self, context, value):
-        # Correct for scale_lenght
-        scale_length = context.scene.unit_settings.scale_length
-        value = [coo / scale_length for coo in value]
-        # Set value
-        geometry.from_fds.xyzs_to_ob(
-            xyzs=(value,),
-            context=context,
-            ob=self.element,
-            bf_xyz=self.element.bf_xyz
-        ) # Send existing self.element.bf_xyz for evaluation
+        try:
+            # Correct for scale_lenght
+            scale_length = context.scene.unit_settings.scale_length
+            value = [coo / scale_length for coo in value]
+            # Set value
+            geometry.from_fds.xyzs_to_ob(
+                xyzs=(value,),
+                context=context,
+                ob=self.element,
+                bf_xyz=self.element.bf_xyz
+            ) # Send existing self.element.bf_xyz for evaluation
+        except: raise BFException(self, "Error in setting '{}' value".format(value))# FIXME test        
 
 # PB
 
@@ -458,31 +462,34 @@ class OP_PB(BFPBProp):
             return [_format_pb(pb, name, i) for i, pb in enumerate(pbs)]
 
     def from_fds(self, context, value):
-        # Correct for scale_lenght
-        value = value / context.scene.unit_settings.scale_length
-        # Set value
-        pbs = ((self.fds_label[2], value),) # eg: (("X", 3.4),)
-        geometry.from_fds.pbs_to_ob(
-            pbs=pbs,
-            context=context,
-            ob=self.element,
-            bf_pb=self.element.bf_pb
-        ) # Send existing self.element.bf_pb for evaluation
+        try:
+            # Correct for scale_lenght
+            value = value / context.scene.unit_settings.scale_length
+            # Set value
+            pbs = ((self.fds_label[2], value),) # eg: (("X", 3.4),)
+            geometry.from_fds.pbs_to_ob(
+                pbs=pbs,
+                context=context,
+                ob=self.element,
+                bf_pb=self.element.bf_pb
+            ) # Send existing self.element.bf_pb for evaluation
+        except: raise BFException(self, "Error in setting '{}' value".format(value))# FIXME test        
+
 
 @subscribe
-class OP_PBX(BFNoAutoMod, OP_PB): # used for PBX, PBY, PBZ import trapping
+class OP_PBX(BFNoAutoUIMod, BFNoAutoExportMod, OP_PB): # used for PBX, PBY, PBZ import trapping
     label = "PBX"
     bf_props = []
     fds_label = "PBX"
 
 @subscribe
-class OP_PBY(BFNoAutoMod, OP_PB): # used for PBX, PBY, PBZ import trapping
+class OP_PBY(BFNoAutoUIMod, BFNoAutoExportMod, OP_PB): # used for PBX, PBY, PBZ import trapping
     label = "PBY"
     bf_props = []
     fds_label = "PBY"
 
 @subscribe
-class OP_PBZ(BFNoAutoMod, OP_PB): # used for PBX, PBY, PBZ import trapping
+class OP_PBZ(BFNoAutoUIMod, BFNoAutoExportMod, OP_PB): # used for PBX, PBY, PBZ import trapping
     label = "PBZ"
     bf_props = []
     fds_label = "PBZ"
@@ -815,6 +822,10 @@ class SP_DUMP_render_file(BFProp):
     def to_fds(self, context):
         if self.element.bf_dump_render_file: return "RENDER_FILE='{}.ge1'".format(self.element.name)
 
+    def from_fds(self, context, value): # In FDS this parameter contains a string, here it is a bool
+        if value: super().from_fds(context, True)
+        else: super().from_fds(context, False)
+
 @subscribe
 class SP_DUMP_NFRAMES_export(BFExportProp):
     bpy_type = Scene
@@ -856,7 +867,7 @@ class SN_DUMP(BFNamelist):
 # TAIL
 
 @subscribe
-class SN_TAIL(BFNoAutoMod, BFNamelist):
+class SN_TAIL(BFNoAutoUIMod, BFNoAutoExportMod, BFNamelist):
     label = "TAIL"
     enum_id = 3100
     fds_label = "TAIL"
@@ -894,7 +905,7 @@ class MP_free(BFFreeProp):
     bpy_type = Material
 
 @subscribe
-class MP_COLOR(BFNoAutoMod, BFProp): # For COLOR trapping during import only
+class MP_COLOR(BFNoAutoUIMod, BFNoAutoExportMod, BFProp): # For COLOR trapping during import only
     label = "Color"
     description = "Color"
     fds_label = "COLOR"
@@ -902,7 +913,7 @@ class MP_COLOR(BFNoAutoMod, BFProp): # For COLOR trapping during import only
     bpy_prop = None # Do not register
     bpy_idname = "diffuse_color"
 
-    def set_value(self, context, value):
+    def from_fds(self, context, value): # FIXME test
         try: value = tables.colors[value]
         except KeyError: raise BFException(self, "Unknown color name '{}'".format(value))
         self.element.diffuse_color = value[0]/255, value[1]/255, value[2]/255
@@ -917,12 +928,21 @@ class MP_RGB(BFNoAutoUIMod, BFProp): # ui is statically added in the material pa
     bpy_prop = None # Do not register
     bpy_idname = "diffuse_color"
 
-    def get_value(self):
+    def to_fds(self, context): # FIXME test
         color = self.element.diffuse_color
-        return int(color[0]*255), int(color[1]*255), int(color[2]*255)
+        return "RGB={},{},{}".format(int(color[0]*255), int(color[1]*255), int(color[2]*255))   
 
-    def set_value(self, context, value):
-        self.element.diffuse_color = value[0]/255, value[1]/255, value[2]/255    
+#    def get_value(self):
+#        color = self.element.diffuse_color
+#        return int(color[0]*255), int(color[1]*255), int(color[2]*255)
+
+    def from_fds(self, context, value):
+        try: self.element.diffuse_color = value[0]/255, value[1]/255, value[2]/255
+        except: raise BFException(self, "Wrong RGB color value '{}'".format(value))
+
+#    def set_value(self, context, value): # FIXME from_fds
+#        try: self.element.diffuse_color = value[0]/255, value[1]/255, value[2]/255
+#        except: raise BFException(self, "Unknown RGB color value '{}'".format(value))
 
 @subscribe
 class MP_TRANSPARENCY(BFNoAutoUIMod, BFProp): # ui is statically added in the material panel
@@ -1069,7 +1089,7 @@ class OP_export(BFExportProp):
     bpy_default = True
 
 @subscribe
-class OP_show_transparent(BFNoAutoMod, BFProp): # Useful for bpy_props_copy operator
+class OP_show_transparent(BFNoAutoUIMod, BFNoAutoExportMod, BFProp): # Useful for bpy_props_copy operator
     label = "Show Object Transparency"
     description = "Show Object Transparency"
     bpy_type = Object
@@ -1077,7 +1097,7 @@ class OP_show_transparent(BFNoAutoMod, BFProp): # Useful for bpy_props_copy oper
     bpy_idname = "show_transparent"
 
 @subscribe
-class OP_draw_type(BFNoAutoMod, BFProp): # Useful for bpy_props_copy operator
+class OP_draw_type(BFNoAutoUIMod, BFNoAutoExportMod, BFProp): # Useful for bpy_props_copy operator
     label = "Draw Type"
     description = "Draw type"
     bpy_type = Object
@@ -1085,7 +1105,7 @@ class OP_draw_type(BFNoAutoMod, BFProp): # Useful for bpy_props_copy operator
     bpy_idname = "draw_type"
 
 @subscribe
-class OP_hide(BFNoAutoMod, BFProp): # Useful for bpy_props_copy operator
+class OP_hide(BFNoAutoUIMod, BFNoAutoExportMod, BFProp): # Useful for bpy_props_copy operator
     label = "Hide"
     description = "Hide object"
     bpy_type = Object
@@ -1093,7 +1113,7 @@ class OP_hide(BFNoAutoMod, BFProp): # Useful for bpy_props_copy operator
     bpy_idname = "hide"
 
 @subscribe
-class OP_hide_select(BFNoAutoMod, BFProp): # Useful for bpy_props_copy operator
+class OP_hide_select(BFNoAutoUIMod, BFNoAutoExportMod, BFProp): # Useful for bpy_props_copy operator
     label = "Hide From Selection"
     description = "Hide from selection"
     bpy_type = Object
@@ -1101,7 +1121,7 @@ class OP_hide_select(BFNoAutoMod, BFProp): # Useful for bpy_props_copy operator
     bpy_idname = "hide_select"
 
 @subscribe
-class OP_id_suffix(BFNoAutoMod, BFProp):
+class OP_id_suffix(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
     label = "ID Suffix"
     description = "Append suffix to multiple ID values"
     fds_label = None
@@ -1160,11 +1180,19 @@ class OP_SURF_ID(BFProp):
     def get_exported(self, context):
         return self.element.active_material and self.element.active_material.bf_export
 
-    def get_value(self):
-        if self.element.active_material: return self.element.active_material.name
+    def to_fds(self, context): # FIXME test
+        if self.get_exported(context): return "SURF_ID='{}'".format(self.element.active_material.name)
+        
+#    def get_value(self):
+#        if self.element.active_material: return self.element.active_material.name
 
-    def set_value(self, context, value):
-        self.element.active_material = geometry.geom_utils.get_material(context, str(value))
+    def from_fds(self, context, value): # FIXME test
+        try: self.element.active_material = geometry.geom_utils.get_material(context, str(value))
+        except: raise BFException(self, "Error in setting '{}' Blender material".format(value))
+
+#    def set_value(self, context, value):
+#        try: self.element.active_material = geometry.geom_utils.get_material(context, str(value))
+#        except: raise BFException(self, "Error in setting '{}' Blender material".format(value))
 
 @subscribe
 class OP_OBST_THICKEN(BFBoolProp):
