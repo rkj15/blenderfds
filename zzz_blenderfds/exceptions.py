@@ -9,26 +9,20 @@ class BFException(Exception):
         if not msgs: raise Exception("No msgs for BFException __init__")
         self.msgs = msgs
 
-    def __repr__(self):
-        return "{__class__.__name__!s}(sender={sender!r}, {msgs!r})".format(
-            __class__ = self.__class__,
-            **self.__dict__
-        )
-
     def __str__(self):
-        return "; ".join(self.msgs)
-
-    def draw(self, context, layout):
-        """Draw self user interface"""
-        for msg in self.msgs:
-            layout.label(icon="ERROR", text=msg)
+        return "\n".join(self.labels)
 
     @property
-    def labels(self):
-        label = self.sender.fds_label or self.sender.label or "Unknown"
-        return [": ".join((label, msg)) for msg in self.msgs]
+    def labels(self) -> "List":
+        """Return a list of exception labels (sender: msg)."""
+        return [": ".join((str(self.sender), msg)) for msg in self.msgs]
 
     @property
-    def fds_labels(self):
-        return ["! ERROR --- {}".format(label) for label in self.labels]
+    def fds_labels(self) -> "List":
+        """Return a list of exception labels (sender: msg) in FDS file format."""
+        return ["# ERROR: {}".format(label) for label in self.labels]
 
+    def draw(self, context, layout) -> "layout":
+        """Draw self user interface."""
+        for msg in self.msgs: layout.label(icon="ERROR", text=msg)
+        
