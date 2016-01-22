@@ -50,7 +50,7 @@ class ClsList(list):
         
 def is_writable(filepath):
     """Check if filepath is writable"""
-    return write_to_file(filepath, "Test")
+    return write_to_file(filepath, " ")
 
 def write_to_file(filepath, text_file):
     """Write text_file to filepath"""
