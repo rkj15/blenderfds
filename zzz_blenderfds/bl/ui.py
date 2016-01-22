@@ -3,7 +3,7 @@
 import bpy
 from bpy.types import Panel, Header, Menu
 
-from . import operators_io
+from . import operators_export, operators_import
 
 DEBUG = False
 
@@ -12,9 +12,9 @@ DEBUG = False
 def register():
     """Register menus and other ui mods"""
     # io menus
-    bpy.types.INFO_MT_file_export.prepend(operators_io.export_OT_fds_case_menu)
-    bpy.types.INFO_MT_file_import.prepend(operators_io.import_OT_fds_snippet_menu)
-    bpy.types.INFO_MT_file_import.prepend(operators_io.import_OT_fds_case_menu)
+    bpy.types.INFO_MT_file_export.prepend(operators_export.export_OT_fds_case_menu)
+    bpy.types.INFO_MT_file_import.prepend(operators_import.import_OT_fds_snippet_menu)
+    bpy.types.INFO_MT_file_import.prepend(operators_import.import_OT_fds_case_menu)
     # Load blenderfds settings menu
     bpy.types.INFO_MT_file.draw = _INFO_MT_file_draw
     # Additional mods (user's preference)
