@@ -31,7 +31,7 @@ def voxelize(context, ob, flat=False) -> "(xbs, voxel_size, timing)":
     ## Voxelize object
     # Get original object and, if requested, its bbox in global coordinates (remesh works in local coordinates)
     me_bvox = get_global_mesh(context, ob)
-    ob_bvox = get_new_object(context, "bvox", me_bvox, linked=False)
+    ob_bvox = get_new_object(context, context.scene, "bvox", me_bvox, linked=False)
     if precise_bbox:
         if not is_manifold(context, me_bvox): raise BFException(ob, "Object non-manifold, cannot set precise position.")
         bbox_bvox = get_bbox(ob_bvox)
@@ -41,7 +41,7 @@ def voxelize(context, ob, flat=False) -> "(xbs, voxel_size, timing)":
     octree_depth, scale, voxel_size = _calc_remesh_modifier(context, ob.dimensions, voxel_size)
     _apply_remesh_modifier(context, ob_bvox, octree_depth, scale)
     # Get voxelized object and, if requested, its bbox
-    ob_avox = get_new_object(context, "avox", get_global_mesh(context, ob_bvox), linked=False)
+    ob_avox = get_new_object(context, context.scene, "avox", get_global_mesh(context, ob_bvox), linked=False)
     if precise_bbox: bbox_avox = get_bbox(ob_avox)
 
     ## Find, build and grow boxes

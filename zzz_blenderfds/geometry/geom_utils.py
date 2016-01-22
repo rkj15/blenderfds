@@ -20,11 +20,11 @@ def set_global_mesh(context, ob, me) -> "None":
     except ValueError: pass
     ob.data = me
 
-def get_new_object(context, name, me=None, linked=True) -> "Object":
+def get_new_object(context, scene, name, me=None, linked=True) -> "Object":
     """Create new object, named name, set mesh me if any, link to scene."""
     if not me: me = bpy.data.meshes.new("mesh") # dummy mesh
     ob = bpy.data.objects.new(name, me)
-    if linked: context.scene.objects.link(ob)
+    if linked: scene.objects.link(ob)
     return ob
 
 def get_object_by_name(context, name) -> "Object or None":
@@ -73,7 +73,7 @@ def is_manifold(context, me) -> "Bool":
 def get_global_bbox(context, ob) -> "x0, x1, y0, y1, z0, z1":
     """Get object’s bounding box in global coordinates and in xbs format."""
     # Init
-    ob_tmp = get_new_object(context, "tmp", get_global_mesh(context, ob), linked=False)
+    ob_tmp = get_new_object(context, context.scene, "tmp", get_global_mesh(context, ob), linked=False)
     # Calc the bounding box in global coordinates, as it's global
     bbox = get_bbox(ob_tmp)
     # Clean up temporary object

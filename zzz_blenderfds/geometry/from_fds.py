@@ -80,7 +80,7 @@ def xbs_to_ob(xbs, context, ob=None, bf_xb="NONE", name="xbs_to_ob", update_cent
     # Get mesh, set it, set properties and center position
     me = choose_from_xbs[bf_xb](xbs)
     if ob: set_global_mesh(context, ob, me) # ob exists, set its mesh
-    else: ob = get_new_object(context, name, me) # no ob, get a new one with proper mesh
+    else: ob = get_new_object(context, context.scene, name, me) # no ob, get a new one with proper mesh
     ob.bf_xb = bf_xb
     if update_center: set_balanced_center_position(context, ob)
     return ob
@@ -112,7 +112,7 @@ def xyzs_to_ob(xyzs, context, ob=None, bf_xyz="NONE", name="xyzs_to_ob", update_
     # Get mesh, set it, set properties and center position
     me = choose_from_xyzs[bf_xyz](xyzs)
     if ob: set_global_mesh(context, ob, me) # ob exists, set its mesh
-    else: ob = get_new_object(context, name, me) # no ob, get a new one with proper mesh
+    else: ob = get_new_object(context, context.scene, name, me) # no ob, get a new one with proper mesh
     ob.bf_xyz = bf_xyz
     if update_center: set_balanced_center_position(context, ob)
     return ob
@@ -149,7 +149,7 @@ def pbs_to_ob(pbs, context, ob=None, bf_pb="NONE", name="pbs_to_ob", update_cent
     # Get mesh, set it, set properties and center position
     me = choose_from_pbs[bf_pb](pbs)
     if ob: set_global_mesh(context, ob, me) # ob exists, set its mesh
-    else: ob = get_new_object(context, name, me) # no ob, get a new one with proper mesh
+    else: ob = get_new_object(context, context.scene, name, me) # no ob, get a new one with proper mesh
     ob.bf_pb = bf_pb
     if update_center: set_balanced_center_position(context, ob)
     return ob
