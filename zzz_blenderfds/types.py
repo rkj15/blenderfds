@@ -1,7 +1,7 @@
 """BlenderFDS, types"""
 
 from bpy.props import *
-from bpy.types import Object
+from bpy.types import Scene, Object, Material
 
 from .exceptions import BFException
 from .utils import is_iterable, ClsList
@@ -44,7 +44,7 @@ class _BFCommon():
 
     label = "No Label"        # Object label
     description = "No desc"   # Object description
-    overwrite = True          # Allowed overwrite on copy/import operations
+    overwrite = True          # Allowed overwrite for copy properties operators TODO move to bf_other?
     enum_id = 0               # Unique integer id for EnumProperty
     fds_label = None          # FDS label as "OBST", "ID", ...
 
@@ -367,7 +367,7 @@ class BFNamelist(_BFCommon):
 
     # Import
 
-    def from_fds(self, context, tokens, snippet=False): # FIXME no snippet
+    def from_fds(self, context, tokens) -> "None":
         """Set my properties from imported FDS tokens, on error raise BFException.
         Tokens have the following format: ((fds_original, fds_label, fds_value), ...)
         Eg: (("ID='example'", "ID", "example"), ("XB=...", "XB", (1., 2., 3., 4., 5., 6.,)), ...)
@@ -377,9 +377,8 @@ class BFNamelist(_BFCommon):
         if not tokens: return
         # Set separator
         separator = config.namelist_separator
-        # If snippet, do not mix old and new properties, so first set default
-        # It is really useful only when current Scene is used, but it's fast and snippets are usually short
-        if snippet: self.set_default(context)
+        # Only scene namelists may be overwritten; do not mix old and new properties, so first set default
+        if self.bpy_type == Scene: self.set_default(context)
         # Set export of myself
         self.set_exported(context, True)
         # Order tokens, SURF_ID needs a working mesh, so treat last, after XB, XYZ, PB* that create the mesh

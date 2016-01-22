@@ -127,14 +127,12 @@ class BFScene():
         w = context.window_manager.windows[0]
         w.cursor_modal_set("WAIT")
         bodies = list()
-
         # Export
         try:
             # Myself
             for bf_namelist in self.bf_namelists:
                 bodies.append(bf_namelist.to_fds(context) or str())
         except BFException as err: raise BFException(self, *err.labels)
-
         # Return
         w.cursor_modal_restore()
         return "".join(bodies)
@@ -211,50 +209,42 @@ class BFScene():
 
     def _get_imported_element(self, context, bf_namelist_cls, fds_label, fds_value) -> "Element":
         """Get element."""
-        # Init
         bpy_type = bf_namelist_cls.bpy_type
-        element = None
-        # Is Scene
-        if bpy_type == bpy.types.Scene: element = self
-        # Is Object
+        if bpy_type == bpy.types.Scene:
+            element = self # Import into self
         elif bpy_type == bpy.types.Object:
-            element = geometry.geom_utils.get_new_object(context, self, name="New {}".format(fds_label)) # Never overwrite
+            element = geometry.geom_utils.get_new_object(context, self, name="New {}".format(fds_label)) # New Object
             element.bf_namelist_cls = bf_namelist_cls.__name__ # Set link to namelist
-        # Is Material
         elif bpy_type == bpy.types.Material:
-            element = geometry.geom_utils.get_new_material(context, name="New {}".format(fds_label)) # Never overwrite
-        # Is Unknown
-        else: raise ValueError("BFDS: BFScene.from_fds: Unrecognized namelist type!")
-        # Appearance
+            element = geometry.geom_utils.get_new_material(context, name="New {}".format(fds_label)) # New Material
+            element.bf_namelist_cls = "MN_SURF" # Set link to default namelist
+        else:
+            raise ValueError("BFDS: BFScene.from_fds: Unrecognized namelist type!")
         element.set_default_appearance(context)
         return element
 
-    def _save_imported_unmanaged_tokens(self, context, free_texts) -> "None":
+    def _save_imported_unmanaged_tokens(self, context, free_texts) -> "None": # FIXME test
         """Save unmanaged tokens to free text."""
-        # Get or create free text file
+        # Get or create free text file, then show
         bf_head_free_text = fds.head.set_free_text_file(context, self)
-        # Prepare
-        free_texts.insert(0,"! Imported\n")
-        if bpy.data.texts[bf_head_free_text]:
-            free_texts.append("\n! Previous\n")
-            free_texts.append(bpy.data.texts[bf_head_free_text].as_string())
-        # Write and show
+        # Get existing contents
+        old_free_texts = bpy.data.texts[bf_head_free_text].as_string()
+        if old_free_texts: free_texts.extend(("\n! ---\n",old_free_texts))
+        # Write merged contents
         bpy.data.texts[bf_head_free_text].from_string("\n".join(free_texts))
 
-    def from_fds(self, context, value, snippet=False):
+    def from_fds(self, context, value):
         """Import a text in FDS notation into self. On error raise BFException.
         Value is any text in good FDS notation.
         """
         # Init
         w = context.window_manager.windows[0]
         w.cursor_modal_set("WAIT")
-
         # Tokenize value and manage exception
         try: tokens = fds.to_py.tokenize(value)
         except Exception as err:
             w.cursor_modal_restore()
             raise BFException(self, "Unrecognized FDS syntax, cannot import.")
- 
         # Treat tokens
         free_texts = list()
         is_error_reported = False
@@ -262,19 +252,15 @@ class BFScene():
             # Init
             fds_original, fds_label, fds_value = token
             bf_namelist_cls = self._get_imported_bf_namelist_cls(context, fds_label, fds_value)
-            # DEBUG and print("BFDS: Scene.from_fds: token, bf_namelist_cls:", token, bf_namelist_cls)
             # This FDS namelist is not managed
             if not bf_namelist_cls:
                 free_texts.append(fds_original)
                 continue
-            # If snippet, check if overwrite of namelist is allowed (eg. SN_HEAD...) FIXME
-            if snippet and not bf_namelist_cls.overwrite: continue
             # Get or create element, then instanciate BFNamelist
             element = self._get_imported_element(context, bf_namelist_cls, fds_label, fds_value)
             bf_namelist = bf_namelist_cls(element)
-            # DEBUG and print("BFDS: Scene.from_fds: element, bf_namelist:", element, bf_namelist)
             # Import token
-            try: bf_namelist.from_fds(context, fds_value, snippet)
+            try: bf_namelist.from_fds(context, fds_value)
             except BFException as err:
                 is_error_reported = True
                 free_texts.extend(err.fds_labels)

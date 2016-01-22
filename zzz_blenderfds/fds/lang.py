@@ -526,7 +526,6 @@ class SP_HEAD_CHID(BFStringProp):
 class SP_HEAD_TITLE(BFStringProp):
     label = "TITLE"
     description = "Case description"
-    overwrite = False # Do not allow replacement
     fds_label = "TITLE"
     bpy_type = Scene
     bpy_idname = "bf_head_title"
@@ -553,7 +552,6 @@ class SP_HEAD_directory(BFNoAutoExportMod, BFProp):
 class SP_HEAD_free_text(BFNoAutoExportMod, BFProp):
     label = "Free Text File"
     description = "Name of the free text file appended to the HEAD namelist"
-    overwrite = False # Do not allow replacement
     bpy_type = Scene
     bpy_idname = "bf_head_free_text"
     bpy_prop = StringProperty
@@ -575,7 +573,6 @@ class SP_HEAD_free_text(BFNoAutoExportMod, BFProp):
 class SN_HEAD(BFNamelist):
     label = "HEAD"
     description = "FDS case header"
-    overwrite = False # Do not allow replacement
     enum_id = 3001
     fds_label = "HEAD"
     bpy_type = Scene

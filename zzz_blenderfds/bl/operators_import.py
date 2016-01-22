@@ -29,11 +29,11 @@ class import_OT_fds_case(Operator, ImportHelper):
         return bl_scene_from_fds_case(
             self,
             context,
-            snippet=False,
+            to_current_scene=False,
             **self.as_keywords(ignore=("check_existing", "filter_glob"))
         )
 
-### Import FDS snippet into current scene
+### Import FDS code into current scene
 
 class ImportHelperSnippet(ImportHelper):
     """Load an FDS snippet into current scene, operator"""
@@ -54,7 +54,7 @@ class ImportHelperSnippet(ImportHelper):
         return bl_scene_from_fds_case(
             self,
             context,
-            snippet=True,
+            to_current_scene=True,
             **self.as_keywords(ignore=("check_existing", "filter_glob"))
         )
 
@@ -95,13 +95,13 @@ def _view3d_view_all(context):
                     override = {'area': area, 'region': region, 'edit_object': bpy.context.edit_object}
                     bpy.ops.view3d.view_all(override)
 
-def bl_scene_from_fds_case(operator, context, snippet=False, filepath=""):
+def bl_scene_from_fds_case(operator, context, to_current_scene=False, filepath=""):
     """Import FDS file to a Blender Scene"""
 
     # Init
     w = context.window_manager.windows[0]
     w.cursor_modal_set("WAIT")
-    if snippet:
+    if to_current_scene:
         # Import into current scene
         sc = context.scene
     else:
@@ -121,7 +121,7 @@ def bl_scene_from_fds_case(operator, context, snippet=False, filepath=""):
         return {'CANCELLED'}
 
     # Import to scene
-    try: sc.from_fds(context=context, value=imported_value, snippet=snippet) # FIXME snippet needed?
+    try: sc.from_fds(context=context, value=imported_value)
     except BFException as err:
         w.cursor_modal_restore()
         operator.report({"ERROR"}, str(err))
