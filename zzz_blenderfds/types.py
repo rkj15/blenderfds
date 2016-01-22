@@ -8,7 +8,7 @@ from .utils import is_iterable, ClsList
 
 from . import config
 
-DEBUG = False
+DEBUG = True
 
 ### Collections
 
@@ -75,8 +75,12 @@ class _BFCommon():
         return "{__class__.__name__!s}(element={element!r})".format(
             __class__ = self.__class__, **self.__dict__)
 
-    def __str__(self):
-        return "{}:{}".format(self.element.name, self.label)
+    def __str__(self):  # FIXME test
+        return "{} '{}': {}".format(
+            self.element.__class__.__name__,
+            self.element.name,
+            self.fds_label or self.label or self.__name__
+            )
     
     # Generated properties
     
@@ -106,7 +110,7 @@ class _BFCommon():
     def register(cls):
         """Register all related Blender properties."""
         DEBUG and print("BFDS: BFProp.register:", cls.__name__)
-        if not cls.bpy_type: raise Exception("No bpy_type in class '{}'".format(cls.__name__))
+        if not cls.bpy_type: raise Exception("No bpy_type in class '{}'".format(str(cls)))
         # Register my own Blender property, if needed
         if cls.bpy_prop and cls.bpy_idname and not hasattr(cls.bpy_type, cls.bpy_idname):
             if DEBUG:
@@ -125,7 +129,7 @@ class _BFCommon():
     @classmethod
     def unregister(cls):
         """Unregister all related Blender properties."""
-        DEBUG and print("BFDS: BFProp.unregister:", cls.__name__) # TODO unregister
+        DEBUG and print("BFDS: BFProp.unregister:", str(cls)) # TODO unregister
 
     # UI
 
@@ -158,8 +162,9 @@ class _BFCommon():
 
     def set_value(self, context, value) -> "any or None":
         """Set my Blender property to value for element."""
+        # Do not raise BFException here. Check is performed by UI, do not add overhead!
         if self.bpy_idname: setattr(self.element, self.bpy_idname, value)
-
+        
     def set_default_value(self, context) -> "any or None":
         """Set my Blender property to default value for element."""
         default = self.bpy_default
@@ -247,13 +252,15 @@ class BFProp(_BFCommon):
 
     # Import
 
-    def from_fds(self, context, value):
+    def from_fds(self, context, value): # FIXME try
         """Set my value from value in FDS notation, on error raise BFException.
         Value is any type of data compatible with bpy_prop
         Eg: "String", (0.2,3.4,1.2), ...
         """
+        # DEBUG and print("BFDS: BFProp.from_fds:", str(self), value)
         self.set_exported(context, True)
-        self.set_value(context, value)
+        try: self.set_value(context, value)
+        except: raise BFException(self, "Error while importing '{}' value".format(value))
 
 
 class BFNamelist(_BFCommon):
@@ -342,7 +349,7 @@ class BFNamelist(_BFCommon):
 
     def to_fds(self, context):
         """Get my exported FDS string, on error raise BFException."""
-        DEBUG and print("BFDS: BFNamelist.to_fds:", self.element)
+        DEBUG and print("BFDS: BFNamelist.to_fds:", str(self))
         # Check self
         if not self.get_exported(context): return None
         try: self.check(context)
@@ -365,7 +372,7 @@ class BFNamelist(_BFCommon):
         Tokens have the following format: ((fds_original, fds_label, fds_value), ...)
         Eg: (("ID='example'", "ID", "example"), ("XB=...", "XB", (1., 2., 3., 4., 5., 6.,)), ...)
         """
-        DEBUG and print("BFDS: BFNamelist.from_fds:", tokens)
+        DEBUG and print("BFDS: BFNamelist.from_fds:", str(self), tokens)
         # Init
         if not tokens: return
         # Set separator
@@ -387,11 +394,10 @@ class BFNamelist(_BFCommon):
             if bf_prop:
                 # This FDS property is managed
                 # Instantiate and import BFProp
-                bf_prop(self.element).from_fds(context, fds_value) # Do not trap BFException, let it climb up
+                bf_prop(self.element).from_fds(context, fds_value) # Let exceptions climb up
             else:
                 # This FDS property is not managed
                 free_texts.append(fds_original)
-
         # Save unmanaged tokens in self.bf_prop_free
         if free_texts and self.bf_prop_free:
             self.bf_prop_free.set_value(context, " ".join(free_texts))
@@ -529,20 +535,19 @@ class BFPBProp(BFGeometryProp):
     
 ### Modifiers for derived BFProp
 
-class BFNoAutoUIMod(): # No automatic UI
+class BFNoAutoUIMod(): # No automatic UI (eg. my UI is managed elsewhere)
     def draw(self, context, layout):
         pass
 
 
-class BFNoAutoExportMod(): # No automatic export
+class BFNoAutoExportMod(): # No automatic export (eg. my export is managed elsewhere)
     def to_fds(self, context):
         pass
 
 
-class BFNoAutoMod(BFNoAutoUIMod, BFNoAutoExportMod):
-    pass
-
-
+class BFNoAutoImportMod(): # No automatic import (eg. my import is managed elsewhere)
+    def from_fds(self, context):
+        pass
 
 
 
