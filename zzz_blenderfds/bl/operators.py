@@ -295,7 +295,7 @@ class MATERIAL_OT_bf_assign_BC_to_sel_obs(Operator):
 
 ### Predefined materials
 
-class MATERIAL_OT_bf_set_predefined(Operator):
+class MATERIAL_OT_bf_set_predefined(Operator): # TODO this operator is not used, no more checks in the UI
     bl_label = "Set Predefined"
     bl_idname = "material.bf_set_predefined"
     bl_description = "Set predefined SURFs: INERT, OPEN, MIRROR..."
