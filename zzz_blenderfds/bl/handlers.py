@@ -31,10 +31,8 @@ def _load_post(self):
     check_file_version(bpy.context)
     # Init FDS default materials
     if not fds.surf.has_predefined(): bpy.ops.material.bf_set_predefined()
-    # Init metric units, render engine
-    for scene in bpy.data.scenes:
-        scene.unit_settings.system = 'METRIC'
-        scene.render.engine = 'CYCLES' # for transparency visualisation
+    # Set default scene appearance
+    for scene in bpy.data.scenes: scene.set_default_appearance(context=None)
     # Open the right file in editor
     context = bpy.context
     fds.head.set_free_text_file(context, context.scene)
@@ -65,13 +63,13 @@ def get_file_version_string(context):
 def check_file_version(context):
     """Check current file version and manage eventual conversion."""
     # Init
-    file_version = get_file_version(context)
+    file_version = tuple(get_file_version(context))
     file_version_string = get_file_version_string(context)
     print("BFDS: File version:", file_version_string)
     # Protect the following bf_dialog operator, if Blender is still not ready to show it
     if not context.window: return
     # Check older
-    if file_version < (4,0,0): # Check latest file format change
+    if  file_version < (4,0,0): # Check latest file format change
         msg = "Check your old input data!"
         description = \
 """This file was created on BlenderFDS {}.
