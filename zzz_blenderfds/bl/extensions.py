@@ -9,7 +9,7 @@ from .. import geometry
 from .. import fds
 from .. import config
 
-DEBUG = False
+DEBUG = True
 
 ### Extend bpy.type.Object
 
@@ -91,7 +91,7 @@ class BFMaterial():
         try:
             # Myself
             bf_namelist = self.bf_namelist
-            if bf_namelist: body = bf_namelist.to_fds(context) or str()  # could be None
+            if bf_namelist: body = bf_namelist.to_fds(context) or str() # could be None
         except BFException as err: raise BFException(self, *err.labels)
 
         # Return
@@ -116,7 +116,8 @@ class BFScene():
     bf_namelists = property(_get_bf_namelists) # Many namelists per scene
 
     def set_default_appearance(self, context):
-        pass
+        self.unit_settings.system = 'METRIC'
+        self.render.engine = 'CYCLES'  # for transparency visualisation
 
     # Export
 
@@ -212,18 +213,16 @@ class BFScene():
         """Get element."""
         # Init
         bpy_type = bf_namelist_cls.bpy_type
-        imported_element_name = {prop[1]: prop[2] for prop in fds_value}.get("ID", None)
+        element = None
         # Is Scene
         if bpy_type == bpy.types.Scene: element = self
         # Is Object
         elif bpy_type == bpy.types.Object:
-            element = geometry.geom_utils.get_object_by_name(context, name=imported_element_name)
-            if not element: element = geometry.geom_utils.get_new_object(context, name="New {}".format(fds_label))
+            element = geometry.geom_utils.get_new_object(context, self, name="New {}".format(fds_label)) # Never overwrite
             element.bf_namelist_cls = bf_namelist_cls.__name__ # Set link to namelist
         # Is Material
         elif bpy_type == bpy.types.Material:
-            element = geometry.geom_utils.get_material_by_name(context, name=imported_element_name)
-            if not element: element = geometry.geom_utils.get_new_material(context, name="New {}".format(fds_label))
+            element = geometry.geom_utils.get_new_material(context, name="New {}".format(fds_label)) # Never overwrite
         # Is Unknown
         else: raise ValueError("BFDS: BFScene.from_fds: Unrecognized namelist type!")
         # Appearance
@@ -255,7 +254,7 @@ class BFScene():
         except Exception as err:
             w.cursor_modal_restore()
             raise BFException(self, "Unrecognized FDS syntax, cannot import.")
-
+ 
         # Treat tokens
         free_texts = list()
         is_error_reported = False
@@ -263,6 +262,7 @@ class BFScene():
             # Init
             fds_original, fds_label, fds_value = token
             bf_namelist_cls = self._get_imported_bf_namelist_cls(context, fds_label, fds_value)
+            # DEBUG and print("BFDS: Scene.from_fds: token, bf_namelist_cls:", token, bf_namelist_cls)
             # This FDS namelist is not managed
             if not bf_namelist_cls:
                 free_texts.append(fds_original)
@@ -272,13 +272,14 @@ class BFScene():
             # Get or create element, then instanciate BFNamelist
             element = self._get_imported_element(context, bf_namelist_cls, fds_label, fds_value)
             bf_namelist = bf_namelist_cls(element)
+            # DEBUG and print("BFDS: Scene.from_fds: element, bf_namelist:", element, bf_namelist)
             # Import token
             try: bf_namelist.from_fds(context, fds_value, snippet)
             except BFException as err:
                 is_error_reported = True
                 free_texts.extend(err.fds_labels)
-        # Save unmanaged tokens to free text
-        if free_texts: self._save_imported_unmanaged_tokens(context, free_texts)
+        # Save unmanaged tokens to free text, even if empty
+        self._save_imported_unmanaged_tokens(context, free_texts)
         # Return
         w.cursor_modal_restore()
         if is_error_reported: raise BFException(self, "Errors reported, see details in HEAD free text file.")
