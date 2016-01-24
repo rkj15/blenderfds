@@ -75,7 +75,7 @@ def _INFO_MT_file_draw(self, context):
     layout.operator_context = 'INVOKE_AREA'
     layout.operator("wm.save_homefile", icon='SAVE_PREFS')
     layout.operator("wm.bf_load_blenderfds_settings", icon='LOAD_FACTORY')
-    layout.operator("wm.read_factory_settings", icon='LOAD_FACTORY')
+#    layout.operator("wm.read_factory_settings", icon='LOAD_FACTORY') # It was not working well 
 
     layout.separator()
 
