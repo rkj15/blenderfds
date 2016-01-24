@@ -40,54 +40,47 @@ class export_OT_fds_case(Operator, ExportHelper):
         w = context.window_manager.windows[0]
         w.cursor_modal_set("WAIT")
         sc = context.scene
-
         # Prepare FDS filepath
         DEBUG and print("BFDS: export_OT_fds_case: Exporting current Blender Scene '{}' to FDS case file".format(sc.name))
         filepath = self.filepath
         if not filepath.lower().endswith('.fds'): filepath += '.fds'
-        filepath = bpy.path.abspath(filepath)  
+        filepath = bpy.path.abspath(filepath)
+        # Check FDS filepath writable
         if not is_writable(filepath):
             w.cursor_modal_restore()
             self.report({"ERROR"}, "FDS file not writable, cannot export")
             return {'CANCELLED'}
-
         # Prepare FDS file
         try: fds_file = sc.to_fds_case(context=context)
         except BFException as err:
             w.cursor_modal_restore()
             self.report({"ERROR"}, str(err))
             return{'CANCELLED'}
-
         # Write FDS file
         if not write_to_file(filepath, fds_file):
             w.cursor_modal_restore()
             self.report({"ERROR"}, "FDS file not writable, cannot export")
             return {'CANCELLED'}
-
         # GE1 description file requested?
         if sc.bf_dump_render_file:
-
             # Prepare GE1 filepath
             DEBUG and print("BFDS: export_OT_fds_case: Exporting current Blender Scene '{}' to .ge1 render file".format(sc.name))
             filepath = filepath[:-4] + '.ge1'
             if not is_writable(filepath):
                 w.cursor_modal_restore()
                 self.report({"ERROR"}, "GE1 file not writable, cannot export")
-                return {'CANCELLED'}
-                
+                return {'CANCELLED'}              
             # Prepare GE1 file
             try: ge1_file = sc.to_ge1(context=context)
             except BFException as err:
                 w.cursor_modal_restore()
                 self.report({"ERROR"}, str(err))
                 return{'CANCELLED'}
-
             # Write GE1 file
             if not write_to_file(filepath, ge1_file):
                 w.cursor_modal_restore()
                 self.report({"ERROR"}, "GE1 file not writable, cannot export")
-                return {'CANCELLED'}
-           
+                return {'CANCELLED'}      
         # End
         w.cursor_modal_restore()
         DEBUG and print("BFDS: export_OT_fds_case: End.")

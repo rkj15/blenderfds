@@ -41,10 +41,10 @@ class OP_namelist_cls(BFProp):
     bpy_type = Object
     bpy_idname = "bf_namelist_cls"
     bpy_prop = EnumProperty
-    bpy_default = "ON_OBST"
     bpy_other = {
         "items": (("ON_OBST", "OBST", "Obstruction", 1000),),
         "update": update_OP_namelist_cls,
+        "default": "ON_OBST",
     }
 
 # Material related namelist cls name
@@ -60,10 +60,10 @@ class MP_namelist_cls(BFProp):
     bpy_type = Material
     bpy_idname = "bf_namelist_cls"
     bpy_prop = EnumProperty
-    bpy_default = "MN_SURF"
     bpy_other = {
         "items": (("MN_SURF", "SURF", "Generic boundary condition", 2000),),
-        "update": update_MP_namelist_cls
+        "update": update_MP_namelist_cls,
+        "default": "MN_SURF",
     }
 
 # Object tmp
@@ -75,7 +75,9 @@ class OP_is_tmp(BFProp):
     bpy_type = Object
     bpy_idname = "bf_is_tmp"
     bpy_prop = BoolProperty
-    bpy_default = False
+    bpy_other = {
+		"default": False,
+	}
 
 @subscribe
 class OP_has_tmp(BFProp):
@@ -84,7 +86,9 @@ class OP_has_tmp(BFProp):
     bpy_type = Object
     bpy_idname = "bf_has_tmp"
     bpy_prop = BoolProperty
-    bpy_default = False
+    bpy_other = {
+		"default": False,
+	}
 
 # File version
 
@@ -92,11 +96,16 @@ class OP_has_tmp(BFProp):
 class SP_file_version(BFProp):
     label = "BlenderFDS File Version"
     description = "BlenderFDS file format version"
+    bf_other = {
+        "copy_protect": True,
+    }
     bpy_type = Scene
     bpy_idname = "bf_file_version"
     bpy_prop = IntVectorProperty
-    bpy_default = config.supported_file_version
-    bpy_other = {"size":3,}
+    bpy_other = {
+        "size": 3,
+        "default": config.supported_file_version,
+    }
 
 # Old object properties from old BlenderFDS to allow transition
 
@@ -123,9 +132,9 @@ class OP_XB_precise_bbox(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
     bpy_type = Object
     bpy_idname = "bf_xb_precise_bbox"
     bpy_prop = BoolProperty
-    bpy_default = False
     bpy_other = {
-        "update": update_bf_xb_voxel_size
+        "update": update_bf_xb_voxel_size,
+        "default": False,
     }
 
 @subscribe
@@ -135,9 +144,9 @@ class OP_XB_custom_voxel(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
     bpy_type = Object
     bpy_idname = "bf_xb_custom_voxel"
     bpy_prop = BoolProperty
-    bpy_default = False
     bpy_other = {
-        "update": update_bf_xb_voxel_size
+        "update": update_bf_xb_voxel_size,
+        "default": False,
     }
 
 @subscribe
@@ -147,13 +156,13 @@ class OP_XB_voxel_size(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
     bpy_type = Object
     bpy_idname = "bf_xb_voxel_size"
     bpy_prop = FloatProperty
-    bpy_default = .10
     bpy_other =  {
         "step": 1.,
         "precision": 3,
         "min": .001,
         "max": 20.,
-        "update": update_bf_xb_voxel_size
+        "update": update_bf_xb_voxel_size,
+        "default": .10,
     }
     # unit = "LENGTH", # correction for scale_length needed before exporting!
 
@@ -164,13 +173,13 @@ class SP_default_voxel_size(BFNoAutoExportMod, BFProp):
     bpy_type = Scene
     bpy_idname = "bf_default_voxel_size"
     bpy_prop = FloatProperty
-    bpy_default = .10
     bpy_other =  {
         "step": 1.,
         "precision": 3,
         "min": .001,
         "max": 20.,
-        "update": update_bf_xb_voxel_size
+        "update": update_bf_xb_voxel_size,
+        "default": .10,
     }
     # unit = "LENGTH", # correction for scale_length needed before exporting!
 
@@ -188,7 +197,6 @@ def update_bf_xb(self, context):
 @subscribe
 class OP_XB(BFXBProp):
     bf_props = OP_XB_precise_bbox, OP_XB_custom_voxel, OP_XB_voxel_size
-    bpy_default = "BBOX"
     bpy_other = {
         "update": update_bf_xb,
         "items": (
@@ -198,7 +206,8 @@ class OP_XB(BFXBProp):
             ("FACES", "Faces", "Faces, one for each face of this object", 300),
             ("PIXELS", "Pixels", "Export pixels from pixelized flat object", 400),
             ("EDGES", "Edges", "Segments, one for each edge of this object", 500),
-        )
+        ),
+        "default": "BBOX",
     }
     allowed_items = "NONE", "BBOX", "VOXELS", "FACES", "PIXELS", "EDGES"
 
@@ -284,7 +293,7 @@ class OP_XB(BFXBProp):
                 bf_xb=self.element.bf_xb
             ) # Send existing element.bf_xb for evaluation.
         # TODO: EDGE recognition!
-        except: raise BFException(self, "Error in setting '{}' value".format(value))
+        except: raise BFException(self, "Error while importing '{}' value".format(value))
         
 @subscribe
 class OP_XB_bbox(OP_XB):
@@ -312,14 +321,14 @@ def update_bf_xyz(self, context):
 @subscribe
 class OP_XYZ(BFXYZProp):
     bpy_prop = EnumProperty
-    bpy_default = "NONE"
     bpy_other = {
         "update": update_bf_xyz,
         "items": (
             ("NONE", "None", "Not exported", 0),
             ("CENTER", "Center", "Point, corresponding to the center point of this object", 100),
             ("VERTICES", "Vertices", "Points, one for each vertex of this object", 200),
-        )
+        ),
+        "default": "NONE",
     }
 
     allowed_items = "NONE", "CENTER", "VERTICES"
@@ -393,7 +402,7 @@ class OP_XYZ(BFXYZProp):
                 ob=self.element,
                 bf_xyz=self.element.bf_xyz
             ) # Send existing self.element.bf_xyz for evaluation
-        except: raise BFException(self, "Error in setting '{}' value".format(value))
+        except: raise BFException(self, "Error while importing '{}' value".format(value))
 
 # PB
 
@@ -411,13 +420,13 @@ def update_bf_pb(self, context):
 class OP_PB(BFPBProp):
     # bf_props = OP_PBX, OP_PBY, OP_PBZ are defined later
     bpy_prop = EnumProperty
-    bpy_default = "NONE"
     bpy_other = {
         "update": update_bf_pb,
         "items": (
             ("NONE", "None", "Not exported", 0),
             ("PLANES", "Planes", "Planes, one for each face of this object", 100),
-        )
+        ),
+        "default": "NONE",
     }
 
     allowed_items = "NONE", "PLANES"
@@ -473,7 +482,7 @@ class OP_PB(BFPBProp):
                 ob=self.element,
                 bf_pb=self.element.bf_pb
             ) # Send existing self.element.bf_pb for evaluation
-        except: raise BFException(self, "Error in setting '{}' value".format(value))
+        except: raise BFException(self, "Error while importing '{}' value".format(value))
 
 
 @subscribe
@@ -507,8 +516,10 @@ subscribe(OP_PB)
 class SP_HEAD_CHID(BFStringProp):
     label = "CHID"
     description = "Case identificator"
-    overwrite = False # Do not allow replacement
     fds_label = "CHID"
+    bf_other = {
+        "copy_protect": True,
+    }
     bpy_type = Scene
     bpy_prop = None # Do not register
     bpy_idname = "name"
@@ -529,19 +540,21 @@ class SP_HEAD_TITLE(BFStringProp):
     fds_label = "TITLE"
     bpy_type = Scene
     bpy_idname = "bf_head_title"
-    bpy_default = ""
-    bpy_other =  {"maxlen": 64,}
+    bpy_other =  {
+        "maxlen": 64,
+    }
 
 @subscribe
 class SP_HEAD_directory(BFNoAutoExportMod, BFProp):
     label = "Case Directory"
     description = "Case directory"
-    overwrite = False # Do not allow replacement
     bpy_type = Scene
     bpy_idname = "bf_head_directory"
     bpy_prop = StringProperty
-    bpy_default = ""
-    bpy_other =  {"subtype": "DIR_PATH", "maxlen": 1024,}
+    bpy_other =  {
+        "subtype": "DIR_PATH",
+        "maxlen": 1024,
+    }
 
     def check(self, context):
         value = self.element.bf_head_directory
@@ -555,7 +568,6 @@ class SP_HEAD_free_text(BFNoAutoExportMod, BFProp):
     bpy_type = Scene
     bpy_idname = "bf_head_free_text"
     bpy_prop = StringProperty
-    bpy_default = ""
 
     def _draw_body(self, context, layout):
         row = layout.row(align=True)
@@ -585,7 +597,9 @@ class SP_TIME_export(BFExportProp):
     description = "Set if TIME namelist is exported to FDS"
     bpy_type = Scene
     bpy_idname = "bf_time_export"
-    bpy_default = True
+    bpy_other = {
+		"default": True, # No damage
+	}
 
 @subscribe
 class SP_TIME_T_BEGIN(BFProp):
@@ -595,12 +609,12 @@ class SP_TIME_T_BEGIN(BFProp):
     bpy_type = Scene
     bpy_idname = "bf_time_t_begin"
     bpy_prop = FloatProperty
-    bpy_default = 0.
     bpy_other = {
         "unit": "TIME",
         "step": 100.,
         "precision": 1,
-        "min": 0.
+        "min": 0.,
+        "default": 0.,
     }
 
     def get_exported(self, context):
@@ -620,7 +634,9 @@ class SP_TIME_setup_only(BFProp):
     bpy_type = Scene
     bpy_idname = "bf_time_setup_only"
     bpy_prop = BoolProperty
-    bpy_default = True
+    bpy_other = {
+		"default": True, # Prevent start of automatic calculation
+	}
 
     def to_fds(self, context):
         if self.element.bf_time_setup_only: return "T_END=0."
@@ -729,12 +745,12 @@ class SP_REAC_CO_YIELD(BFProp):
     bpy_type = Scene
     bpy_idname = "bf_reac_co_yield"
     bpy_prop = FloatProperty
-    bpy_default = 0.
     bpy_other = {
         "step": 1.,
         "precision": 3,
         "min": 0.,
         "max": 1.,
+        "default": 0.,
     }
 
 @subscribe
@@ -765,11 +781,11 @@ class SP_REAC_HEAT_OF_COMBUSTION(BFProp):
     bpy_type = Scene
     bpy_idname = "bf_reac_heat_of_combustion"
     bpy_prop = FloatProperty
-    bpy_default = 0.
     bpy_other = {
         "step": 100000.,
         "precision": 1,
         "min": 0.,
+        "default": 0.,
     }
 
 @subscribe
@@ -779,7 +795,9 @@ class SP_REAC_IDEAL(BFBoolProp):
     fds_label = "IDEAL"
     bpy_type = Scene
     bpy_idname = "bf_reac_ideal"
-    bpy_default = False
+    bpy_other = {
+		"default": False,
+	}
 
 @subscribe
 class SP_REAC_free(BFFreeProp):
@@ -804,7 +822,9 @@ class SP_DUMP_export(BFExportProp):
     description = "Set if DUMP namelist is exported to FDS"
     bpy_type = Scene
     bpy_idname = "bf_dump_export"
-    bpy_default = True
+    bpy_other = {
+		"default": True, # To have a .ge1 in most cases
+	}
 
 @subscribe
 class SP_DUMP_render_file(BFProp):
@@ -814,7 +834,9 @@ class SP_DUMP_render_file(BFProp):
     bpy_type = Scene
     bpy_idname = "bf_dump_render_file"
     bpy_prop = BoolProperty
-    bpy_default = True
+    bpy_other = {
+		"default": True, # Always dump a render file
+	}
 
     def to_fds(self, context):
         if self.element.bf_dump_render_file: return "RENDER_FILE='{}.ge1'".format(self.element.name)
@@ -837,8 +859,10 @@ class SP_DUMP_NFRAMES(BFProp):
     bpy_type = Scene
     bpy_idname = "bf_dump_nframes"
     bpy_prop = IntProperty
-    bpy_default = 1000
-    bpy_other = {"min": 1}
+    bpy_other = {
+        "min": 1,
+        "default": 1000,
+    }
 
     def check(self, context):
         self.infos.append("Output is dumped every {:.2f} s".format(
@@ -876,14 +900,15 @@ class SN_TAIL(BFNoAutoUIMod, BFNoAutoExportMod, BFNamelist):
 @subscribe
 class MP_export(BFExportProp):
     bpy_type = Material
-    bpy_default = False
 
 @subscribe
 class MP_ID(BFStringProp):
     label = "ID"
     description = "Material identificator"
-    overwrite = False # Do not allow replacement
     fds_label = "ID"
+    bf_other = {
+        "copy_protect": True,
+    }
     bpy_type = Material
     bpy_prop = None # Do not register
     bpy_idname = "name"
@@ -931,7 +956,7 @@ class MP_RGB(BFNoAutoUIMod, BFProp): # ui is statically added in the material pa
 
     def from_fds(self, context, value):
         try: self.element.diffuse_color = value[0]/255, value[1]/255, value[2]/255
-        except: raise BFException(self, "Wrong RGB color value '{}'".format(value))
+        except: raise BFException(self, "Error while importing '{}' value".format(value))
 
 
 @subscribe
@@ -961,11 +986,11 @@ class MP_THICKNESS(BFProp):
     bpy_type = Material
     bpy_idname = "bf_thickness"
     bpy_prop = FloatProperty
-    bpy_default = .01
     bpy_other = {
         "step": 1.,
         "precision": 3,
         "min": .001,
+        "default": .01,
     }
     # "unit": "LENGTH", # correction for scale_length needed before exporting!
 
@@ -977,11 +1002,11 @@ class MP_HRRPUA(BFProp):
     bpy_type = Material
     bpy_idname = "bf_hrrpua"
     bpy_prop = FloatProperty
-    bpy_default = 1000.
     bpy_other = {
         "step": 1000.,
         "precision": 3,
         "min": 0.,
+        "default": 0.,
     }
 
 @subscribe
@@ -992,11 +1017,11 @@ class MP_TAU_Q(BFProp):
     bpy_type = Material
     bpy_idname = "bf_tau_q"
     bpy_prop = FloatProperty
-    bpy_default = 100.
     bpy_other =  {
         "step": 10.,
         "precision": 1,
         "unit": "TIME",
+        "default": 0.,
     }
 
     def check(self, context):
@@ -1033,11 +1058,11 @@ class MP_IGNITION_TEMPERATURE(BFProp):
     bpy_type = Material
     bpy_idname = "bf_ignition_temperature"
     bpy_prop = FloatProperty
-    bpy_default = 300.
     bpy_other =  {
         "step": 100.,
         "precision": 1,
         "min": -273.,
+        "default": 5000.,
     }
 
 @subscribe
@@ -1076,7 +1101,9 @@ class MN_SURF_solid(BFNamelist):
 @subscribe
 class OP_export(BFExportProp):
     bpy_type = Object
-    bpy_default = True
+    bpy_other = {
+		"default": True, # If an object is created, she wants a namelist
+	}
 
 @subscribe
 class OP_show_transparent(BFNoAutoUIMod, BFNoAutoExportMod, BFProp): # Useful for bpy_props_copy operator
@@ -1118,7 +1145,6 @@ class OP_id_suffix(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
     bpy_type = Object
     bpy_idname = "bf_id_suffix"
     bpy_prop = EnumProperty
-    bpy_default = "IDI"
     bpy_other = {
         "items": (
             ("IDI",   "Index", "Append index number to multiple ID values", 100),
@@ -1130,15 +1156,18 @@ class OP_id_suffix(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
             ("IDYZ",  "yz",    "Append y,z coordinates to multiple ID values", 700),
             ("IDXYZ", "xyz",   "Append x,y,z coordinates to multiple ID values", 800),
         ),
+        "default": "IDI",
     }
 
 @subscribe
 class OP_ID(BFStringProp):
     label = "ID"
     description = "Object identificator"
-    overwrite = False # Do not allow replacement
     fds_label = "ID"
     bf_props = OP_id_suffix, OP_show_transparent, OP_draw_type, OP_hide, OP_hide_select
+    bf_other = {
+        "copy_protect": True,
+    }
     bpy_type = Object
     bpy_prop = None # Do not register
     bpy_idname = "name"
@@ -1175,7 +1204,7 @@ class OP_SURF_ID(BFProp):
         
     def from_fds(self, context, value):
         try: self.element.active_material = geometry.geom_utils.get_material(context, str(value))
-        except: raise BFException(self, "Error in setting '{}' Blender material".format(value))
+        except: raise BFException(self, "Error while setting '{}' Blender material".format(value))
 
 
 @subscribe
@@ -1185,7 +1214,9 @@ class OP_OBST_THICKEN(BFBoolProp):
     fds_label = "THICKEN"
     bpy_type = Object
     bpy_idname = "bf_obst_thicken"
-    bpy_default = False
+    bpy_other = {
+		"default": False,
+	}
 
 @subscribe
 class ON_OBST(BFNamelist):
@@ -1209,8 +1240,10 @@ class ON_HOLE(BFNamelist):
     bpy_type = Object
     bf_prop_export = OP_export
     bf_props = OP_ID, OP_FYI , OP_XB_solid, OP_free
-    bf_appearance = {"draw_type": "WIRE"}
-
+    bf_other = {
+        "draw_type": "WIRE",
+    }
+    
 
 # VENT
 
@@ -1249,10 +1282,10 @@ class OP_DEVC_SETPOINT(BFProp):
     bf_prop_export = OP_DEVC_SETPOINT_export
     bpy_idname = "bf_devc_setpoint"
     bpy_prop = FloatProperty
-    bpy_default = 100.
     bpy_other =  {
         "step": 10.,
         "precision": 3,
+        "default": 0.,
     }
 
 @subscribe
@@ -1262,7 +1295,9 @@ class OP_DEVC_INITIAL_STATE(BFBoolProp):
     fds_label = "INITIAL_STATE"
     bpy_type = Object
     bpy_idname = "bf_devc_initial_state"
-    bpy_default = False
+    bpy_other = {
+		"default": False,
+	}
 
 @subscribe
 class OP_DEVC_LATCH(BFBoolProp):
@@ -1271,7 +1306,9 @@ class OP_DEVC_LATCH(BFBoolProp):
     fds_label = "LATCH"
     bpy_type = Object
     bpy_idname = "bf_devc_latch"
-    bpy_default = False
+    bpy_other = {
+		"default": False,
+	}
 
 @subscribe
 class OP_DEVC_PROP_ID(BFStringProp):
@@ -1290,7 +1327,9 @@ class ON_DEVC(BFNamelist):
     bpy_type = Object
     bf_prop_export = OP_export
     bf_props = OP_ID, OP_FYI, OP_DEVC_QUANTITY, OP_DEVC_SETPOINT, OP_DEVC_INITIAL_STATE, OP_DEVC_LATCH, OP_DEVC_PROP_ID, OP_XB, OP_XYZ, OP_free
-    bf_appearance = {"draw_type": "WIRE"}
+    bf_other = {
+        "draw_type": "WIRE",
+    }
 
 
 # SLCF
@@ -1302,8 +1341,10 @@ class OP_SLCF_VECTOR(BFBoolProp):
     fds_label = "VECTOR"
     bpy_type = Object
     bpy_idname = "bf_slcf_vector"
-    bpy_default = False
-
+    bpy_other = {
+		"default": False,
+	}
+    
 @subscribe
 class ON_SLCF(BFNamelist):
     label = "SLCF"
@@ -1313,7 +1354,9 @@ class ON_SLCF(BFNamelist):
     bpy_type = Object
     bf_prop_export = OP_export
     bf_props = OP_ID, OP_FYI, OP_DEVC_QUANTITY, OP_SLCF_VECTOR, OP_XB_faces, OP_PB, OP_free
-    bf_appearance = {"draw_type": "WIRE"}
+    bf_other = {
+        "draw_type": "WIRE",
+    }
 
 
 # PROF
@@ -1327,7 +1370,9 @@ class ON_PROF(BFNamelist):
     bpy_type = Object
     bf_prop_export = OP_export
     bf_props = OP_ID, OP_FYI, OP_DEVC_QUANTITY, OP_XYZ, OP_free
-    bf_appearance = {"draw_type": "WIRE"}
+    bf_other = {
+        "draw_type": "WIRE",
+    }
 
 
 # MESH
@@ -1346,8 +1391,11 @@ class OP_MESH_IJK(BFProp):
     bpy_type = Object
     bpy_idname = "bf_mesh_ijk"
     bpy_prop = IntVectorProperty
-    bpy_default = (10,10,10)
-    bpy_other =  {"size":3, "min":1}
+    bpy_other =  {
+        "size": 3,
+        "min": 1,
+        "default": (10,10,10),
+    }
 
     def check(self, context):
         # Init
@@ -1376,7 +1424,9 @@ class ON_MESH(BFNamelist):
     bpy_type = Object
     bf_prop_export = OP_export
     bf_props = OP_ID, OP_FYI, OP_MESH_IJK, OP_XB_bbox, OP_free
-    bf_appearance = {"draw_type": "WIRE"}
+    bf_other = {
+        "draw_type": "WIRE",
+    }
 
 
 # INIT
@@ -1390,8 +1440,9 @@ class ON_INIT(BFNamelist):
     bpy_type = Object
     bf_prop_export = OP_export
     bf_props = OP_ID, OP_FYI, OP_XB_solid, OP_XYZ, OP_free
-    bf_appearance = {"draw_type": "WIRE"}
-
+    bf_other = {
+        "draw_type": "WIRE",
+    }
 
 # ZONE
 
@@ -1404,7 +1455,9 @@ class ON_ZONE(BFNamelist):
     bpy_type = Object
     bf_prop_export = OP_export
     bf_props = OP_ID, OP_FYI, OP_XB_bbox, OP_free
-    bf_appearance = {"draw_type": "WIRE"}
+    bf_other = {
+        "draw_type": "WIRE",
+    }
 
 
 # free
@@ -1416,8 +1469,10 @@ class OP_free_namelist(BFProp):
     bpy_type = Object
     bpy_idname = "bf_free_namelist"
     bpy_prop = StringProperty
-    bpy_default = "ABCD"
-    bpy_other =  {"maxlen": 4}
+    bpy_other =  {
+        "maxlen": 4,
+        "default": "ABCD",
+    }
 
     def check(self, context):
         value = self.element.bf_free_namelist
