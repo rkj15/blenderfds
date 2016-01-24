@@ -1,7 +1,7 @@
 """BlenderFDS, preferences panel"""
 
 from bpy.types import AddonPreferences
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, StringProperty
 
 # Get preference value like this:
 # bpy.context.user_preferences.addons["zzz_blenderfds"].preferences.bf_pref_simplify_ui
@@ -15,7 +15,31 @@ class BFPreferences(AddonPreferences):
             default=True,
             )
 
+    bf_pref_use_custom_snippet_path = BoolProperty(
+            name="Use Custom Snippet Path",
+            description="Use Custom Snippet Path",
+            default=False,
+            )
+
+    bf_pref_custom_snippet_path = StringProperty(
+            name="Custom Snippet Paths",
+            description="Custom Snippet Paths",
+            subtype="DIR_PATH",
+            maxlen=1024,
+            )
+
     def draw(self, context):
         layout = self.layout
+        # Paths
+        row = layout.row()
+        col_export, col = row.column(), row.column()
+        col_export.prop(self, "bf_pref_use_custom_snippet_path", text="")
+        col.prop(self, "bf_pref_custom_snippet_path")
+        col.active = bool(self.bf_pref_use_custom_snippet_path) # if not used, layout is inactive
+        # UI
         row = layout.row()
         row.prop(self, "bf_pref_simplify_ui")
+        row = layout.row()
+        row.prop(context.user_preferences.filepaths, "use_load_ui", text="Load Custom User Interface on File Open")
+        return layout
+        

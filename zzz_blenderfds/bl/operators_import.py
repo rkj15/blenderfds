@@ -15,11 +15,11 @@ DEBUG = True
 
 def import_OT_fds_case_menu(self, context):
     """Import an FDS case file into new scene, menu funtion"""
-    self.layout.operator("import.fds_case", text="FDS Case (.fds) to new Scene")
+    self.layout.operator("import.fds_case", text="FDS Case (.fds) to New Scene")
 
 class import_OT_fds_case(Operator, ImportHelper):
     """Import an FDS case file into new scene, operator"""
-    bl_label = "Import FDS case"
+    bl_label = "Import FDS Case"
     bl_idname = "import.fds_case"
     bl_description = "Import an FDS case file into a new Blender Scene"
     filename_ext = ".fds"
@@ -37,7 +37,7 @@ class import_OT_fds_case(Operator, ImportHelper):
 
 class ImportHelperSnippet(ImportHelper):
     """Load an FDS snippet into current scene, operator"""
-    bl_label = "Load FDS snippet"
+    bl_label = "Load FDS Snippet"
     bl_idname = "import.fds_snippet"
     bl_description = "Load an FDS snippet into current Blender Scene"
     filename_ext = ".fds"
@@ -45,7 +45,12 @@ class ImportHelperSnippet(ImportHelper):
     filepath_predefined = sys.path[0] + "/zzz_blenderfds/predefined/"
 
     def invoke(self, context, event):
-        if self.filepath_predefined:
+        # Get snippet path from preferences
+        preferences = context.user_preferences.addons["zzz_blenderfds"].preferences
+        if preferences.bf_pref_use_custom_snippet_path:
+            self.filepath = preferences.bf_pref_custom_snippet_path
+        # Else get it from predefined
+        elif self.filepath_predefined:
             self.filepath = self.filepath_predefined
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -60,7 +65,7 @@ class ImportHelperSnippet(ImportHelper):
 
 def import_OT_fds_snippet_menu(self, context):
     """Import an FDS snippet into current scene, menu funtion"""
-    self.layout.operator("import.fds_snippet", text="FDS snippet (.fds) to Scene")
+    self.layout.operator("import.fds_snippet", text="FDS Snippet (.fds) to Scene")
 
 class import_OT_fds_snippet(Operator, ImportHelperSnippet):
     bl_idname = "import.fds_snippet"
