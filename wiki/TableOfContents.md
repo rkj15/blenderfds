@@ -3,7 +3,7 @@
 |**Work in progress** for BlenderFDS 4. |
 
   * Before BlenderFDS
-    * [Learning FDS](LearningFDS.md)
+    * [Learning FDS](LearningFDS.md) (TODO Fix images)
     * [Learning Blender](LearningBlender.md)
   * BlenderFDS Setup
     * [Download](Download.md)
