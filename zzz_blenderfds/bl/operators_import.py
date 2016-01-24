@@ -97,7 +97,6 @@ def _view3d_view_all(context):
 
 def bl_scene_from_fds_case(operator, context, to_current_scene=False, filepath=""):
     """Import FDS file to a Blender Scene"""
-
     # Init
     w = context.window_manager.windows[0]
     w.cursor_modal_set("WAIT")
@@ -109,7 +108,6 @@ def bl_scene_from_fds_case(operator, context, to_current_scene=False, filepath="
         sc = bpy.data.scenes.new("imported_case")
         bpy.context.screen.scene = sc
         sc.set_default_appearance(context)
-
     # Read file
     DEBUG and print("BFDS: operators_import.bl_scene_from_fds_case: Importing:", filepath)
     try:
@@ -119,17 +117,14 @@ def bl_scene_from_fds_case(operator, context, to_current_scene=False, filepath="
         w.cursor_modal_restore()
         operator.report({"ERROR"}, "FDS file not readable, cannot import")
         return {'CANCELLED'}
-
     # Import to scene
     try: sc.from_fds(context=context, value=imported_value)
     except BFException as err:
         w.cursor_modal_restore()
-        operator.report({"ERROR"}, str(err))
+        operator.report({"ERROR"}, err.labels[0])
         return {'CANCELLED'}
-
     # Adapt 3DView
     _view3d_view_all(context)
-
     # End
     w.cursor_modal_restore()
     DEBUG and print("BFDS: operators_import.bl_scene_from_fds_case: End.")
