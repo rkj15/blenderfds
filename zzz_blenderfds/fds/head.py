@@ -2,7 +2,7 @@
 
 import bpy
 
-DEBUG = True
+DEBUG = False
 
 def set_free_text_file(context, scene):
     """Get or set unique free text file name, open it in shown Blender Text Editor area."""

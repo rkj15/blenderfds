@@ -9,7 +9,7 @@ from .. import geometry
 from .. import fds
 from .. import config
 
-DEBUG = True
+DEBUG = False
 
 ### Extend bpy.type.Object
 

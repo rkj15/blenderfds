@@ -8,7 +8,7 @@ from .utils import is_iterable, ClsList
 
 from . import config
 
-DEBUG = True
+DEBUG = False
 
 ### Collections
 

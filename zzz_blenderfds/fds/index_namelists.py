@@ -5,7 +5,7 @@
 
 import re
 
-DEBUG = True
+DEBUG = False
 
 regex = r"""
     (?P<namelist>   # namelist, group "namelist"

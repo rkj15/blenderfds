@@ -8,7 +8,7 @@ from bpy_extras.io_utils import ImportHelper
 from ..exceptions import BFException
 
 
-DEBUG = True
+DEBUG = False
 
 
 ### Import FDS case to new scene

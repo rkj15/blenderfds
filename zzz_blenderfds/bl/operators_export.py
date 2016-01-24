@@ -9,7 +9,7 @@ from ..exceptions import BFException
 from ..utils import is_writable, write_to_file
 
 
-DEBUG = True
+DEBUG = False
 
 ### Export scene to FDS
 
