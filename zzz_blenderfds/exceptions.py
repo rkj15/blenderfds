@@ -1,28 +1,37 @@
 """BlenderFDS, exceptions"""
 
 class BFException(Exception):
-    """Exception raised by all methods in case of an error."""
+    """Exception raised by all methods in case of an error. Can contain sub-errors."""
 
-    def __init__(self, sender, *msgs):
-        if not sender: raise Exception("No sender for BFException __init__")
+    def __init__(self, sender, msg, errors=None):
+        if not sender: raise Exception("No sender in BFException")
         self.sender = sender
-        if not msgs: raise Exception("No msgs for BFException __init__")
-        self.msgs = msgs
+        self.msg = msg
+        self.errors = list()
+        if errors: self.errors.extend(errors)
 
     def __str__(self):
         return "\n".join(self.labels)
+    
+    def draw(self, context, layout) -> "layout":
+        """Draw self msgs user interface."""
+        layout.label(icon="ERROR", text=self.msg)
+
+    @property
+    def my_label(self) -> "str":
+        """Get my label."""
+        sender_text = str(self.sender)
+        return ": ".join((sender_text, self.msg))
 
     @property
     def labels(self) -> "List":
-        """Return a list of exception labels (sender: msg)."""
-        return [": ".join((str(self.sender), msg)) for msg in self.msgs]
+        """Get my label and all errors labels."""
+        labels = list()
+        labels.append(self.my_label)
+        for err in self.errors: labels.extend(err.labels)
+        return labels
 
     @property
-    def fds_labels(self) -> "List":
-        """Return a list of exception labels (sender: msg) in FDS file format."""
+    def free_texts(self) -> "list":
+        """Return labels in free_text format."""
         return ["# ERROR: {}".format(label) for label in self.labels]
-
-    def draw(self, context, layout) -> "layout":
-        """Draw self user interface."""
-        for msg in self.msgs: layout.label(icon="ERROR", text=msg)
-        
