@@ -44,23 +44,20 @@ class _BFCommon():
 
     label = "No Label"        # Object label
     description = "No desc"   # Object description
-    overwrite = True          # Allowed overwrite for copy properties operators TODO move to bf_other?
     enum_id = 0               # Unique integer id for EnumProperty
     fds_label = None          # FDS label as "OBST", "ID", ...
 
     bf_prop_export = None     # Class of type BFExportProp, used for setting if exported
     bf_props =  ClsList()     # Collection of related BFProp
 
-    bf_appearance = {}        # BlenderFDS parameters related to element appearance in 3DView    
     bf_other = {}             # Other optional BlenderFDS parameters,
-                              # eg: {'prop1': value1, ...}
+                              # eg: {'copy_protection': True, 'draw_type': 'WIRE', 'hide_select': True, ...}
 
     bpy_type = None           # type in bpy.types for Blender property, eg. Object
     bpy_idname = None         # idname of related bpy.types Blender property, eg. "bf_id"
     bpy_prop = None           # prop in bpy.props of Blender property, eg. StringProperty
-    bpy_default = None        # default value of Blender property, eg True
     bpy_other = {}            # Other optional Blender property parameters,
-                              # eg. {"min": 3., ...}
+                              # eg. {"min": 3., "default": 0., ...}
 
     def __init__(self, element):
         # The instance contains the reference to element
@@ -74,13 +71,6 @@ class _BFCommon():
     def __repr__(self):
         return "{__class__.__name__!s}(element={element!r})".format(
             __class__ = self.__class__, **self.__dict__)
-
-    def __str__(self):  # FIXME test
-        return "{} '{}': {}".format(
-            self.element.__class__.__name__,
-            self.element.name,
-            self.fds_label or self.label or self.__name__
-            )
     
     # Generated properties
     
@@ -123,7 +113,7 @@ class _BFCommon():
             setattr(
                 cls.bpy_type,
                 cls.bpy_idname,
-                cls.bpy_prop(name=cls.label, description=cls.description, default=cls.bpy_default, **cls.bpy_other)
+                cls.bpy_prop(name=cls.label, description=cls.description, **cls.bpy_other)
             )
 
     @classmethod
@@ -167,7 +157,7 @@ class _BFCommon():
         
     def set_default_value(self, context) -> "any or None":
         """Set my Blender property to default value for element."""
-        default = self.bpy_default
+        default = self.bpy_other.get("default")
         if default is not None: self.set_value(context, default)
 
     def get_exported(self, context) -> "bool":
@@ -191,6 +181,12 @@ class BFProp(_BFCommon):
        
     all = ClsList() # Re-init to obtain specific collection
     all_bf_props = ClsList()
+
+    def __str__(self):
+        return "{} > Parameter {}".format(
+            str(self.element),
+            self.fds_label or self.label or self.__name__,
+            )
 
     # UI
 
@@ -243,7 +239,7 @@ class BFProp(_BFCommon):
         if self.fds_label: return "=".join((self.fds_label, value))
         return str(value)
 
-    def to_fds(self, context):
+    def to_fds(self, context) -> "str":
         """Get my exported FDS string, on error raise BFException."""
         if not self.get_exported(context): return None
         self.check(context)
@@ -252,7 +248,7 @@ class BFProp(_BFCommon):
 
     # Import
 
-    def from_fds(self, context, value): # FIXME try
+    def from_fds(self, context, value):
         """Set my value from value in FDS notation, on error raise BFException.
         Value is any type of data compatible with bpy_prop
         Eg: "String", (0.2,3.4,1.2), ...
@@ -260,7 +256,7 @@ class BFProp(_BFCommon):
         # DEBUG and print("BFDS: BFProp.from_fds:", str(self), value)
         self.set_exported(context, True)
         try: self.set_value(context, value)
-        except: raise BFException(self, "Error while importing '{}' value".format(value))
+        except: raise BFException(self, "Error importing '{}' value".format(value))
 
 
 class BFNamelist(_BFCommon):
@@ -269,7 +265,11 @@ class BFNamelist(_BFCommon):
     all = ClsList() # Re-init to obtain specific collection
     all_bf_props = ClsList()
 
-    bf_appearance = {"draw_type": "SOLID"}
+    def __str__(self):
+        return "{} > Namelist {}".format(
+            str(self.element),
+            self.fds_label or self.label or self.__name__,
+            )
     
     # UI
 
@@ -347,21 +347,24 @@ class BFNamelist(_BFCommon):
         # Return
         return "".join((info, body))
 
-    def to_fds(self, context):
+    def to_fds(self, context) -> "str":
         """Get my exported FDS string, on error raise BFException."""
         DEBUG and print("BFDS: BFNamelist.to_fds:", str(self))
         # Check self
         if not self.get_exported(context): return None
-        try: self.check(context)
-        except BFException as err: raise BFException(self, *err.labels)
+        self.check(context)
         # Check and eval my bf_props
         params = list()
+        errors = list()
         # Export my bf_props
         for bf_prop in self.bf_props or tuple():
             try: param = bf_prop.to_fds(context)
-            except BFException as err: raise BFException(self, *err.labels)
-            if param: params.append(param)
-            self.infos.extend(bf_prop.infos)
+            except BFException as err: errors.append(err)
+            else:
+                if param: params.append(param)
+                self.infos.extend(bf_prop.infos)
+        # Re-raise occurred errors
+        if errors: raise BFException(self, "Following errors reported", errors)
         # Return
         return self.format(context, params)
 
@@ -377,7 +380,8 @@ class BFNamelist(_BFCommon):
         if not tokens: return
         # Set separator
         separator = config.namelist_separator
-        # Only scene namelists may be overwritten; do not mix old and new properties, so first set default
+        # Only scene namelists may be overwritten;
+        # Do not mix old and new properties, so first set default, if it exists
         if self.bpy_type == Scene: self.set_default(context)
         # Set export of myself
         self.set_exported(context, True)
@@ -385,29 +389,34 @@ class BFNamelist(_BFCommon):
         tokens.sort(key=lambda k:k[1]==("SURF_ID")) # Order is: False then True
         # Treat tokens
         free_texts = list()
+        errors = list()
         for token in tokens:
             # Init
             fds_original, fds_label, fds_value = token
             # Search managed FDS property, and import token
-            bf_prop = self.all_bf_props.get_by_fds_label(fds_label)
-            if bf_prop:
-                # This FDS property is managed
-                # Instantiate and import BFProp
-                bf_prop(self.element).from_fds(context, fds_value) # Let exceptions climb up
+            bf_prop_cls = self.all_bf_props.get_by_fds_label(fds_label)
+            if bf_prop_cls:
+                # This FDS property is managed: instantiate and import BFProp
+                try: bf_prop_cls(self.element).from_fds(context, fds_value)
+                except BFException as err: errors.append(err)
             else:
                 # This FDS property is not managed
                 free_texts.append(fds_original)
         # Save unmanaged tokens in self.bf_prop_free
         if free_texts and self.bf_prop_free:
             self.bf_prop_free.set_value(context, " ".join(free_texts))
+        # Re-raise occurred errors
+        if errors: raise BFException(self, "Following errors reported", errors)
 
 ### Specialized BFProp
 
 class BFStringProp(BFProp):
     """This specialized BFProp is used as type for single string properties."""
     bpy_prop = StringProperty
-    bpy_default = ""
-    bpy_other =  {"maxlen": 32}
+    bpy_other =  {
+        "maxlen": 32,
+        "default": "",
+    }
 
     def check(self, context):
         value = self.get_value()
@@ -428,11 +437,13 @@ class BFBoolProp(BFProp):
     that should not be exported when their value is the same as FDS default.
     """
     bpy_prop = BoolProperty
-    bpy_default = False
+    bpy_other =  {
+        "default": False,
+    }
 
     def get_exported(self, context):
         if self.bf_prop_export: return self.bf_prop_export.get_value()
-        if self.get_value() == self.bpy_default: return False
+        if self.get_value() == self.bpy_other.get("default"): return False
         return True    
         
 
@@ -443,7 +454,9 @@ class BFExportProp(BFProp):
     bpy_type = None # Remember to setup!
     bpy_idname = "bf_export"
     bpy_prop = BoolProperty
-    bpy_default = False
+    bpy_other = {
+        "default": False,
+    }
 
 
 class BFFYIProp(BFStringProp):
@@ -451,11 +464,13 @@ class BFFYIProp(BFStringProp):
     label = "FYI"
     description = "Description, for your information"
     fds_label = "FYI"
-    bpy_type = None # Remember!
+    bpy_type = None # Remember to setup!
     bpy_idname = "bf_fyi"
     bpy_prop = StringProperty
-    bpy_default = ""
-    bpy_other =  {"maxlen": 128}
+    bpy_other =  {
+        "maxlen": 128,
+        "default": "",
+    }
 
     def _draw_body(self, context, layout):
         row = layout.row()
@@ -469,8 +484,10 @@ class BFFreeProp(BFProp):
     bpy_type = None # Remember to setup!
     bpy_idname = "bf_free"
     bpy_prop = StringProperty
-    bpy_default = ""
-    bpy_other =  {"maxlen": 1024}
+    bpy_other =  {
+        "maxlen": 1024,
+        "default": "",
+    }
 
     def check(self, context):
         value = self.get_value()

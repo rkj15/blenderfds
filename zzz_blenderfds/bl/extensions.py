@@ -16,51 +16,51 @@ DEBUG = True
 class BFObject():
     """Extend Blender Object bpy.type"""
 
-    def _get_bf_namelist(self):
+    def __str__(self):
+        return "Object {}".format(self.name)
+
+    @property
+    def bf_namelist(self) -> "BFNamelist instance": # Only one namelist per object
         """Returns an instance of the linked Object namelist class."""
         if self.type != "MESH": return None
         ON_cls = BFNamelist.all.get(self.bf_namelist_cls) # get class from name
         if ON_cls: return ON_cls(element=self) # create instance from class
 
-    bf_namelist = property(_get_bf_namelist) # Only one namelist per object
-
     def set_default_appearance(self, context):
         """Set default object appearance."""
-        bf_appearance = self.bf_namelist.bf_appearance
+        # Set draw_type
+        draw_type = self.bf_namelist.bf_other.get("draw_type")
+        if draw_type: self.draw_type = draw_type
+        # Set hide_select
+        hide_select = self.bf_namelist.bf_other.get("hide_select")
+        if hide_select: self.hide_select = hide_select
+        # Set show_transparent
         self.show_transparent = True
-        if bf_appearance:
-            if "draw_type" in bf_appearance: self.draw_type = bf_appearance["draw_type"]
-            if "hide" in bf_appearance: self.hide = bf_appearance["hide"]
-            if "hide_select" in bf_appearance: self.hide_select = bf_appearance["hide_select"]
    
-    def to_fds(self, context) -> "str or None":
+    def to_fds(self, context) -> "str":
         """Export me in FDS notation."""
         # Init
         w = context.window_manager.windows[0]
         w.cursor_modal_set("WAIT")
         bodies = list()
-
-        # Export
-        try:
-            # Choose and call myself
-            if self.type == "MESH":
-                bf_namelist = self.bf_namelist
-                if bf_namelist:
-                    bodies.append(bf_namelist.to_fds(context) or str())  # could be None        
-            elif self.type == "EMPTY":
-                bodies.append("! -- {}: {}\n".format(self.name, self.bf_fyi))
-            else: raise Exception("BFDS: Impossible to export '{}'".format(self.type))
-            # Call children
-            for ob in context.scene.objects:
-                if ob.parent == self: bodies.append(ob.to_fds(context))
-        except BFException as err: raise BFException(self, *err.labels)
-
+        # Choose and call myself
+        if self.type == "MESH":
+            bf_namelist = self.bf_namelist
+            if bf_namelist:
+                bodies.append(bf_namelist.to_fds(context) or str())  # could be None        
+        elif self.type == "EMPTY":
+            bodies.append("! -- {}: {}\n".format(self.name, self.bf_fyi))
+        else: return str()
+        # Call children
+        for ob in context.scene.objects:
+            if ob.parent == self: bodies.append(ob.to_fds(context))
         # Return
         w.cursor_modal_restore()
         return "".join(bodies)
         
 # Add methods to original Blender type
 
+Object.__str__ = BFObject.__str__
 Object.bf_namelist = BFObject.bf_namelist
 Object.set_default_appearance = BFObject.set_default_appearance
 Object.to_fds = BFObject.to_fds
@@ -70,34 +70,35 @@ Object.to_fds = BFObject.to_fds
 class BFMaterial():
     """Extend Blender Material bpy.type"""
 
-    def _get_bf_namelist(self):
+    def __str__(self):
+        return "Material {}".format(self.name)
+
+    @property
+    def bf_namelist(self) -> "BFNamelist instance": # Only one namelist per material
         """Returns an instance of the linked Material namelist class"""
         MN_cls = BFNamelist.all.get(self.bf_namelist_cls) # get class from name
         if MN_cls: return MN_cls(element=self) # create instance from class
 
-    bf_namelist = property(_get_bf_namelist) # Only one namelist per material
-
     def set_default_appearance(self, context):
+        """Set default material appearance."""
         self.use_fake_user = True
 
-    def to_fds(self, context) -> "str or None":
+    def to_fds(self, context) -> "str":
         """Export me in FDS notation."""
         # Init
         w = context.window_manager.windows[0]
         w.cursor_modal_set("WAIT")
         body = None
-
-        # Export
-        try:
-            # Myself
-            bf_namelist = self.bf_namelist
-            if bf_namelist: body = bf_namelist.to_fds(context) or str() # could be None
-        except BFException as err: raise BFException(self, *err.labels)
-
+        # Myself
+        bf_namelist = self.bf_namelist
+        if bf_namelist: body = bf_namelist.to_fds(context) or str() # could be None
         # Return
         w.cursor_modal_restore()
         return body
+        
+# Add methods to original Blender type
 
+Material.__str__ = BFMaterial.__str__
 Material.bf_namelist = BFMaterial.bf_namelist
 Material.set_default_appearance = BFMaterial.set_default_appearance
 Material.to_fds = BFMaterial.to_fds
@@ -107,13 +108,15 @@ Material.to_fds = BFMaterial.to_fds
 class BFScene():
     """Extend Blender Material bpy.type"""
 
-    def _get_bf_namelists(self):
+    def __str__(self):
+        return "Scene {}".format(self.name)
+
+    @property
+    def bf_namelists(self) -> "List of BFNamelist instances":  # Many namelists per scene
         """Returns a list of instances of the linked Scene namelist classes"""
         bf_namelists = [bf_namelist(element=self) for bf_namelist in BFNamelist.all if bf_namelist.bpy_type == Scene]
         bf_namelists.sort(key=lambda k:k.enum_id) # Order Scene namelists by enum_id
         return bf_namelists
-
-    bf_namelists = property(_get_bf_namelists) # Many namelists per scene
 
     def set_default_appearance(self, context):
         self.unit_settings.system = 'METRIC'
@@ -121,18 +124,15 @@ class BFScene():
 
     # Export
 
-    def to_fds(self, context) -> "str or None":
+    def to_fds(self, context) -> "str":
         """Export me in FDS notation."""
         # Init
         w = context.window_manager.windows[0]
         w.cursor_modal_set("WAIT")
         bodies = list()
-        # Export
-        try:
-            # Myself
-            for bf_namelist in self.bf_namelists:
-                bodies.append(bf_namelist.to_fds(context) or str())
-        except BFException as err: raise BFException(self, *err.labels)
+        # Export myself
+        for bf_namelist in self.bf_namelists:
+            bodies.append(bf_namelist.to_fds(context) or str())
         # Return
         w.cursor_modal_restore()
         return "".join(bodies)
@@ -144,7 +144,6 @@ class BFScene():
         w = context.window_manager.windows[0]
         w.cursor_modal_set("WAIT")
         bodies = list()
-
         # Header
         bodies.append("! Generated by BlenderFDS {} on Blender {}\n! Case: {}\n! Description: {}\n! Date: {}\n! File: {}\n\n".format(
             "{0[0]}.{0[1]}.{0[2]}".format(config.supported_file_version), bpy.app.version_string,
@@ -153,19 +152,16 @@ class BFScene():
             time.strftime("%a, %d %b %Y, %H:%M:%S", time.localtime()),
             bpy.data.filepath,
         ))
-
         # Scene
         bodies.append("! --- Configuration\n\n")
         bodies.append(self.to_fds(context))
         bodies.append("\n")
-
         # Free text
         bodies.append("! --- Free text: '{}'\n\n".format(self.bf_head_free_text))
         if self.bf_head_free_text:
             bodies.append(bpy.data.texts[self.bf_head_free_text].as_string())
         if bodies[-1][-1:] == "\n": bodies.append("\n")
         else: bodies.append("\n\n")
-
         # Export materials
         bodies.append("! --- Boundary conditions\n\n")
         mas = [ma for ma in bpy.data.materials 
@@ -174,7 +170,6 @@ class BFScene():
         for ma in mas:
             bodies.append(ma.to_fds(context))
         bodies.append("\n")
-
         # Export objects
         bodies.append("! --- Geometric entities\n\n")
         obs = [ob for ob in context.scene.objects \
@@ -184,15 +179,13 @@ class BFScene():
         for ob in obs:
             bodies.append(ob.to_fds(context))
         bodies.append("\n")
-
         # Set tail
         bodies.append("&TAIL /\n! Generated in {0:.0f} s.".format((time.time()-t0)))
-
         # Return
         w.cursor_modal_restore()
         return "".join(bodies)
 
-    def to_ge1(self, context):
+    def to_ge1(self, context) -> "str or None":
         """Export my geometry in FDS GE1 notation."""
         return geometry.to_ge1.scene_to_ge1(context, self)
 
@@ -223,13 +216,13 @@ class BFScene():
         element.set_default_appearance(context)
         return element
 
-    def _save_imported_unmanaged_tokens(self, context, free_texts) -> "None": # FIXME test
+    def _save_imported_unmanaged_tokens(self, context, free_texts) -> "None":
         """Save unmanaged tokens to free text."""
         # Get or create free text file, then show
         bf_head_free_text = fds.head.set_free_text_file(context, self)
         # Get existing contents
         old_free_texts = bpy.data.texts[bf_head_free_text].as_string()
-        if old_free_texts: free_texts.extend(("\n! ---\n",old_free_texts))
+        if old_free_texts: free_texts.extend(("\n! --- Existing free texts\n",old_free_texts))
         # Write merged contents
         bpy.data.texts[bf_head_free_text].from_string("\n".join(free_texts))
 
@@ -247,29 +240,31 @@ class BFScene():
             raise BFException(self, "Unrecognized FDS syntax, cannot import.")
         # Treat tokens
         free_texts = list()
-        is_error_reported = False
+        errors = list()
         for token in tokens:
             # Init
             fds_original, fds_label, fds_value = token
+            # Search managed FDS namelist, and import token
             bf_namelist_cls = self._get_imported_bf_namelist_cls(context, fds_label, fds_value)
-            # This FDS namelist is not managed
-            if not bf_namelist_cls:
+            if bf_namelist_cls:
+                # This FDS namelists is managed: get element, instanciate and import BFNamelist
+                element = self._get_imported_element(context, bf_namelist_cls, fds_label, fds_value)
+                try: bf_namelist_cls(element).from_fds(context, fds_value)
+                except BFException as err:
+                    errors.append(err)
+                    free_texts.extend(err.free_texts) # Record in free_texts
+            else:
+                # This FDS namelists is not managed
                 free_texts.append(fds_original)
-                continue
-            # Get or create element, then instanciate BFNamelist
-            element = self._get_imported_element(context, bf_namelist_cls, fds_label, fds_value)
-            bf_namelist = bf_namelist_cls(element)
-            # Import token
-            try: bf_namelist.from_fds(context, fds_value)
-            except BFException as err:
-                is_error_reported = True
-                free_texts.extend(err.fds_labels)
-        # Save unmanaged tokens to free text, even if empty
+        # Save free_texts, even if empty (remeber, bf_head_free_text is not set to default)
         self._save_imported_unmanaged_tokens(context, free_texts)
         # Return
         w.cursor_modal_restore()
-        if is_error_reported: raise BFException(self, "Errors reported, see details in HEAD free text file.")
+        if errors: raise BFException(self, "Errors reported, see details in HEAD free text file.", errors)
 
+# Add methods to original Blender type
+
+Scene.__str__ = BFScene.__str__
 Scene.bf_namelists = BFScene.bf_namelists
 Scene.set_default_appearance = BFScene.set_default_appearance
 Scene.to_fds = BFScene.to_fds

@@ -195,9 +195,9 @@ class SCENE_OT_bf_show_fds_code(_COMMON_bf_show_fds_code, Operator):
 def _bf_props_copy(context, source_element, destination_elements):
     """Copy all BFProp from source_element to destination_elements"""
     for bf_prop in BFProp.all:
-        if not bf_prop.overwrite: continue # Do not overwrite protected BFProp
         try: bpy_value = getattr(source_element, bf_prop.bpy_idname)
         except: continue
+        if bf_prop.bf_other.get("copy_protect"): continue # Do not copy protected BFProp
         for destination_element in destination_elements:
             setattr(destination_element, bf_prop.bpy_idname, bpy_value)
             print("BFDS: Copy: {} -> {}: {}='{}'".format(source_element.name, destination_element.name, bf_prop.bpy_idname, bpy_value)) 
