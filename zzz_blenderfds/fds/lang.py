@@ -125,17 +125,17 @@ def update_bf_xb_voxel_size(self, context):
     """Update function for bf_xb_voxel_size"""
     geometry.tmp_objects.del_all(context)
 
-@subscribe
-class OP_XB_precise_bbox(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
-    label = "Precise positioning"
-    description = "Center voxels/pixels to original bounding box"
-    bpy_type = Object
-    bpy_idname = "bf_xb_precise_bbox"
-    bpy_prop = BoolProperty
-    bpy_other = {
-        "update": update_bf_xb_voxel_size,
-        "default": False,
-    }
+#@subscribe  # TODO not ready for prime time
+#class OP_XB_precise_bbox(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
+#    label = "Precise positioning"
+#    description = "Center voxels/pixels to original bounding box"
+#    bpy_type = Object
+#    bpy_idname = "bf_xb_precise_bbox"
+#    bpy_prop = BoolProperty
+#    bpy_other = {
+#        "update": update_bf_xb_voxel_size,
+#        "default": False,
+#    }
 
 @subscribe
 class OP_XB_custom_voxel(BFNoAutoUIMod, BFNoAutoExportMod, BFProp):
@@ -196,7 +196,8 @@ def update_bf_xb(self, context):
 
 @subscribe
 class OP_XB(BFXBProp):
-    bf_props = OP_XB_precise_bbox, OP_XB_custom_voxel, OP_XB_voxel_size
+#    bf_props = OP_XB_precise_bbox, OP_XB_custom_voxel, OP_XB_voxel_size # TODO not ready for prime time
+    bf_props = OP_XB_custom_voxel, OP_XB_voxel_size
     bpy_other = {
         "update": update_bf_xb,
         "items": (
@@ -216,7 +217,7 @@ class OP_XB(BFXBProp):
         if not self.element.bf_xb in ("VOXELS", "PIXELS"): return
         # Draw VOXELS, PIXELS properties
         row = layout.row()
-        row.prop(self.element, "bf_xb_precise_bbox")
+        # row.prop(self.element, "bf_xb_precise_bbox") # TODO not ready for prime time
         layout_export, layout_custom = row.column(), row.column()
         layout_export.prop(self.element, "bf_xb_custom_voxel", text="")
         row = layout_custom.row(align=True)

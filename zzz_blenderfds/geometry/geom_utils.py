@@ -2,9 +2,10 @@
 
 import bpy, bmesh
 
-### Epsilon definition for geometry module (used in float equality comparison)
+### Epsilon definition for geometry module (used in float equality comparison and voxels overlapping)
 
-epsilon = .0001
+epsilon = .001
+
 
 ### Working on Blender objects
 

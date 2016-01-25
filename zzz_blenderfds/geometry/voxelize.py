@@ -23,8 +23,8 @@ def voxelize(context, ob, flat=False) -> "(xbs, voxel_size, timing)":
     ## Init: check, precise_bbox, voxel_size
     t0 = time()
     if not ob.data.vertices: raise BFException(ob, "Empty object!")
-    if ob.bf_xb_precise_bbox: precise_bbox = True
-    else: precise_bbox = False
+    # if ob.bf_xb_precise_bbox: precise_bbox = True  # TODO not ready for prime time
+    # else: precise_bbox = False
     if ob.bf_xb_custom_voxel: voxel_size = ob.bf_xb_voxel_size
     else: voxel_size = context.scene.bf_default_voxel_size
 
@@ -32,9 +32,9 @@ def voxelize(context, ob, flat=False) -> "(xbs, voxel_size, timing)":
     # Get original object and, if requested, its bbox in global coordinates (remesh works in local coordinates)
     me_bvox = get_global_mesh(context, ob)
     ob_bvox = get_new_object(context, context.scene, "bvox", me_bvox, linked=False)
-    if precise_bbox:
-        if not is_manifold(context, me_bvox): raise BFException(ob, "Object non-manifold, cannot set precise position.")
-        bbox_bvox = get_bbox(ob_bvox)
+    # if precise_bbox:  # TODO not ready for prime time
+    #    if not is_manifold(context, me_bvox): raise BFException(ob, "Object non-manifold, cannot set precise position.")
+    #    bbox_bvox = get_bbox(ob_bvox)
     # If flat, solidify and get flatten function for later generated xbs
     if flat: flat_origin, choose_flatten = _solidify_flat_ob(context, ob_bvox, voxel_size/3.)
     # Apply remesh modifier, update voxel_size (can be a little different from desired)
@@ -42,7 +42,7 @@ def voxelize(context, ob, flat=False) -> "(xbs, voxel_size, timing)":
     _apply_remesh_modifier(context, ob_bvox, octree_depth, scale)
     # Get voxelized object and, if requested, its bbox
     ob_avox = get_new_object(context, context.scene, "avox", get_global_mesh(context, ob_bvox), linked=False)
-    if precise_bbox: bbox_avox = get_bbox(ob_avox)
+    # if precise_bbox: bbox_avox = get_bbox(ob_avox)  # TODO not ready for prime time
 
     ## Find, build and grow boxes
     # Get and check tessfaces
@@ -75,7 +75,7 @@ def voxelize(context, ob, flat=False) -> "(xbs, voxel_size, timing)":
     t6 = time()
     xbs = choose[0][4](boxes, voxel_size, origin) # eg. _x_boxes_to_xbs(boxes, ...)
     # If requested, center xbs to original bbox
-    if precise_bbox: move_xbs(xbs, calc_movement_from_bbox1_to_bbox0(bbox_bvox, bbox_avox))
+    # if precise_bbox: move_xbs(xbs, calc_movement_from_bbox1_to_bbox0(bbox_bvox, bbox_avox))  # TODO not ready for prime time
     # If flat, flatten xbs at flat_origin
     if flat: xbs = choose_flatten(xbs, flat_origin)
 
@@ -313,17 +313,17 @@ def _x_boxes_to_xbs(boxes, voxel_size, origin) -> "[(x0, x1, y0, y1, z0, z1), ..
     # Init
     print("BFDS: _x_boxes_to_xbs:", len(boxes))
     xbs = list()
-    voxel_size_half = voxel_size / 2.
+    voxel_size_half = voxel_size / 2. + epsilon # This epsilon is used for overlapping boxes
     # Build xbs
     while boxes:
         ix0, ix1, iy0, iy1, iz0, iz1 = boxes.pop()
         x0, y0, z0 = ( # origin + location + movement to lower left corner
-            origin[0] + ix0 * voxel_size, # - 0., this is already at floor level
+            origin[0] + ix0 * voxel_size - epsilon, # - 0., this is already at floor level
             origin[1] + iy0 * voxel_size - voxel_size_half,
             origin[2] + iz0 * voxel_size - voxel_size_half,
         )
         x1, y1, z1 = ( # origin + location + movement to upper right corner
-            origin[0] + ix1 * voxel_size, # + 0., this is already at floor level
+            origin[0] + ix1 * voxel_size + epsilon, # + 0., this is already at floor level
             origin[1] + iy1 * voxel_size + voxel_size_half,
             origin[2] + iz1 * voxel_size + voxel_size_half,
         )
@@ -335,18 +335,18 @@ def _y_boxes_to_xbs(boxes, voxel_size, origin) -> "[(x0, x1, y0, y1, z0, z1), ..
     print("BFDS: _y_boxes_to_xbs:", len(boxes))
     # Init
     xbs = list()
-    voxel_size_half = voxel_size / 2.
+    voxel_size_half = voxel_size / 2. + epsilon # This epsilon is used for overlapping boxes
     # Build xbs
     while boxes:
         ix0, ix1, iy0, iy1, iz0, iz1 = boxes.pop()
         x0, y0, z0 = ( # origin + location + movement to lower left corner
             origin[0] + ix0 * voxel_size - voxel_size_half,
-            origin[1] + iy0 * voxel_size, # - 0., this is already at floor level
+            origin[1] + iy0 * voxel_size - epsilon, # - 0., this is already at floor level
             origin[2] + iz0 * voxel_size - voxel_size_half,
         )
         x1, y1, z1 = ( # origin + location + movement to upper right corner
             origin[0] + ix1 * voxel_size + voxel_size_half,
-            origin[1] + iy1 * voxel_size, # + 0., this is already at floor level
+            origin[1] + iy1 * voxel_size + epsilon, # + 0., this is already at floor level
             origin[2] + iz1 * voxel_size + voxel_size_half,
         )
         xbs.append([x0, x1, y0, y1, z0, z1],)
@@ -357,19 +357,19 @@ def _z_boxes_to_xbs(boxes, voxel_size, origin) -> "[(x0, x1, y0, y1, z0, z1), ..
     # Init
     print("BFDS: _z_boxes_to_xbs:", len(boxes))
     xbs = list()
-    voxel_size_half = voxel_size / 2.
+    voxel_size_half = voxel_size / 2. + epsilon # This epsilon is used for overlapping boxes
     # Build xbs
     while boxes:
         ix0, ix1, iy0, iy1, iz0, iz1 = boxes.pop()
         x0, y0, z0 = ( # origin + location + movement to lower left corner
             origin[0] + ix0 * voxel_size - voxel_size_half,
             origin[1] + iy0 * voxel_size - voxel_size_half,
-            origin[2] + iz0 * voxel_size, # - 0., this is already at floor level
+            origin[2] + iz0 * voxel_size - epsilon, # - 0., this is already at floor level
         )
         x1, y1, z1 = ( # origin + location + movement to upper right corner
             origin[0] + ix1 * voxel_size + voxel_size_half,
             origin[1] + iy1 * voxel_size + voxel_size_half,
-            origin[2] + iz1 * voxel_size, # + 0., this is already at floor level
+            origin[2] + iz1 * voxel_size + epsilon, # + 0., this is already at floor level
         )
         xbs.append([x0, x1, y0, y1, z0, z1],)
     return xbs
