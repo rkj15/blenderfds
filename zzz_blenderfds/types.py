@@ -557,7 +557,7 @@ class BFNoAutoUIMod(): # No automatic UI (eg. my UI is managed elsewhere)
 
 
 class BFNoAutoExportMod(): # No automatic export (eg. my export is managed elsewhere) # FIXME test
-    def from_fds(self, context):
+    def to_fds(self, context):
         if not self.get_exported(context): return None
         self.check(context)
 
