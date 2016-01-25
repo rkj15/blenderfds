@@ -1,7 +1,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.blender[123]
+*.blend[123]
 *.end
 *.out
 *.smv
@@ -13,6 +13,7 @@ __pycache__/
 *.csv
 *.info
 *svn.txt
+*.prt5
 
 
 
