@@ -239,7 +239,7 @@ class BFProp(_BFCommon):
         if self.fds_label: return "=".join((self.fds_label, value))
         return str(value)
 
-    def to_fds(self, context) -> "str":
+    def to_fds(self, context) -> "str or None":
         """Get my exported FDS string, on error raise BFException."""
         if not self.get_exported(context): return None
         self.check(context)
@@ -347,7 +347,7 @@ class BFNamelist(_BFCommon):
         # Return
         return "".join((info, body))
 
-    def to_fds(self, context) -> "str":
+    def to_fds(self, context) -> "str or None":
         """Get my exported FDS string, on error raise BFException."""
         DEBUG and print("BFDS: BFNamelist.to_fds:", str(self))
         # Check self
@@ -556,9 +556,10 @@ class BFNoAutoUIMod(): # No automatic UI (eg. my UI is managed elsewhere)
         pass
 
 
-class BFNoAutoExportMod(): # No automatic export (eg. my export is managed elsewhere)
-    def to_fds(self, context):
-        pass
+class BFNoAutoExportMod(): # No automatic export (eg. my export is managed elsewhere) # FIXME test
+    def from_fds(self, context):
+        if not self.get_exported(context): return None
+        self.check(context)
 
 
 class BFNoAutoImportMod(): # No automatic import (eg. my import is managed elsewhere)

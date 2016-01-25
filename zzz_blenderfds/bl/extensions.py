@@ -177,7 +177,8 @@ class BFScene():
     def _free_text_to_fds(self, context) -> "list": # FIXME test
         """Export HEAD free text in FDS notation."""
         bodies = list()
-        if self.bf_head_free_text: # FIXME no error management
+        # HEAD BFNnamelist traps my errors
+        if self.bf_head_free_text:
             bodies.append("! --- Free text: '{}'\n\n".format(self.bf_head_free_text))
             bodies.append(bpy.data.texts[self.bf_head_free_text].as_string())
             if bodies[-1][-1:] == "\n": bodies.append("\n")
