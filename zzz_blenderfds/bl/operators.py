@@ -5,6 +5,7 @@ from bpy.types import Operator
 from bpy.props import *
 
 from ..types import BFProp
+from ..exceptions import BFException
 from .. import fds
 from .. import geometry
 
