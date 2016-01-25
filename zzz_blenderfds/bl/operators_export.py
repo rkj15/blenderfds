@@ -51,7 +51,7 @@ class export_OT_fds_case(Operator, ExportHelper):
             self.report({"ERROR"}, "FDS file not writable, cannot export")
             return {'CANCELLED'}
         # Prepare FDS file
-        try: fds_file = sc.to_fds_case(context=context)
+        try: fds_file = sc.to_fds(context=context, with_children=True)
         except BFException as err:
             w.cursor_modal_restore()
             self.report({"ERROR"}, str(err))
