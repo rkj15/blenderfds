@@ -15,11 +15,11 @@ fi
 
 unzip $version.zip
 rm -rf $version.zip
-
 mv blenderfds-$short_version BlenderFDS-$version
+
 cd BlenderFDS-$version
 zip -r blenderfds.zip zzz_blenderfds
-rm -rf zzz_blenderfds .gitignore
+rm -rf zzz_blenderfds dev .gitignore
 
 cd ..
 zip -r BlenderFDS-$version.zip BlenderFDS-$version
