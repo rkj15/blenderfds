@@ -89,12 +89,12 @@ class OBJECT_OT_bf_set_cell_size(Operator):
     bf_snap_to_origin = BoolProperty(
         name="Snap To Global Origin",
         description="Snap this MESH to global origin",
-        default=True,
+        default=False,
     )
     bf_poisson_restriction = BoolProperty(
         name="Poisson Restriction",
         description="Respect FDS Poisson solver restriction on IJK values by adjusting object dimensions",
-        default=True,
+        default=False,
     )
     
     def draw(self, context):
