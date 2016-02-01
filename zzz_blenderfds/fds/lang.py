@@ -1228,7 +1228,9 @@ class ON_OBST(BFNamelist):
     bpy_type = Object
     bf_prop_export = OP_export
     bf_props = OP_ID, OP_id_suffix, OP_FYI, OP_SURF_ID, OP_XB_solid, OP_OBST_THICKEN, OP_free
-
+    bf_other = {
+        "draw_type": "SOLID",
+    }
 
 # HOLE
 
@@ -1257,6 +1259,9 @@ class ON_VENT(BFNamelist):
     bpy_type = Object
     bf_prop_export = OP_export
     bf_props = OP_ID, OP_FYI, OP_SURF_ID, OP_XB_faces, OP_XYZ, OP_PB, OP_free
+    bf_other = {
+        "draw_type": "SOLID",
+    }
 
 
 # DEVC
