@@ -16,14 +16,14 @@ class BFPreferences(AddonPreferences):
             )
 
     bf_pref_use_custom_snippet_path = BoolProperty(
-            name="Use Custom Snippet Path",
-            description="Use Custom Snippet Path",
+            name="Use Custom Snippets Path",
+            description="Use Custom Snippets Path",
             default=False,
             )
 
     bf_pref_custom_snippet_path = StringProperty(
-            name="Custom Snippet Paths",
-            description="Custom Snippet Paths",
+            name="Custom Snippets Path",
+            description="Custom Snippets Path",
             subtype="DIR_PATH",
             maxlen=1024,
             )
