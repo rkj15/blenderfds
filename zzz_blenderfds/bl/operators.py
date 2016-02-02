@@ -395,25 +395,37 @@ class MATERIAL_OT_bf_set_tau_q(Operator):
     bl_idname = "material.set_tau_q"
     bl_description = "Set t² ramp and HRRPUA"
 
-    bf_burner_area = FloatProperty(name="Est.d Burner Area [m²]", min=0., precision=3, step=1000) # unit="AREA" this would need correction
-    bf_hrr_max = FloatProperty(name="HRR Max [kW]", min=0., precision = 1, step=1000)
+    bf_burner_area = FloatProperty(
+        name="Est.d Burner Area [m²]",
+        description="Estimated burner area used for HRRPUA. Correct it for eventual hidden burner surfaces.",
+        min=0., precision=2, step=100
+    ) # unit="AREA" this would need correction
+    bf_hrr_max = FloatProperty(
+        name="HRR Max [kW]",
+        description="Maximum HRR achieved at the end of the αt² ramp.",
+        min=0., precision = 1, step=1000
+    )
     bf_growth_rate = EnumProperty(
         name = "Growth Rate",
+        description="Standardized growth rate for the HRR αt² ramp.",
         items = (
             ("SLOW", "Slow (600 s)", "Slow growth rate (600 s)"),
             ("MEDIUM", "Medium (300 s)", "Medium growth rate (300 s)"),
             ("FAST", "Fast (150 s)", "Fast growth rate (150 s)"),
             ("ULTRA-FAST", "Ultra fast (75 s)", "Ultra fast growth rate (75 s)"),
         ),
+        default = "FAST",
     )
     bf_reference_hrr = EnumProperty(
         name = "Reference HRR",
+        description="Reference HRR αt² ramp standard.",
         items = (
             ("US", "US, 1000 BTU/s (1055 kW)", "US, 1000 BTU/s (1055 kw)"),
             ("EN", "Eurocode, 1000 kW", "Eurocode, 1000 kW"),
         ),
+        default = "EN",
     )
-    bf_set_fyi = BoolProperty(name = "Set FYI")
+    bf_set_fyi = BoolProperty(name="Set FYI",default=False) # The user shall choose and understand implications
 
     def execute(self, context):
         ma = context.object.active_material
@@ -443,9 +455,6 @@ class MATERIAL_OT_bf_set_tau_q(Operator):
         # Set defaults to estimated values
         self.bf_burner_area = burner_area
         self.bf_hrr_max = ma.bf_hrrpua * burner_area
-        self.bf_growth_rate = "FAST"
-        self.bf_reference_hrr = "US"
-        self.bf_set_fyi = False # The user shall choose and understand implications
         # Call dialog
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
