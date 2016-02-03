@@ -17,6 +17,13 @@ def register():
     bpy.types.INFO_MT_file_import.prepend(operators_import.import_OT_fds_case_menu)
     # Load blenderfds settings menu
     bpy.types.INFO_MT_file.draw = _INFO_MT_file_draw
+    # Create property for space properties header
+    # called elsewhere, should always exist
+    bpy.types.WindowManager.bf_sp_context = bpy.props.EnumProperty(
+        items=_sp_items,
+        update=_sp_items_update,
+        default="SCENE"
+    )    
     # Additional mods (user's preference)
     if bpy.context.user_preferences.addons["zzz_blenderfds"].preferences.bf_pref_simplify_ui:
         # Simplify info editor menu
@@ -26,7 +33,7 @@ def register():
         # Simplify view3d tools
         bpy.types.VIEW3D_PT_tools_add_object.draw = _VIEW3D_PT_tools_add_object_draw
         # Simplify space properties header
-        _rewire_space_properties_header()
+        bpy.types.PROPERTIES_HT_header.draw = _PROPERTIES_HT_header_draw
         # Treat (rewire or unregister) unused Blender bpy.types
         _treat_unused_bl_classes()
 
@@ -75,7 +82,6 @@ def _INFO_MT_file_draw(self, context):
     layout.operator_context = 'INVOKE_AREA'
     layout.operator("wm.save_homefile", icon='SAVE_PREFS')
     layout.operator("wm.bf_load_blenderfds_settings", icon='LOAD_FACTORY')
-#    layout.operator("wm.read_factory_settings", icon='LOAD_FACTORY') # It was not working well 
 
     layout.separator()
 
@@ -136,24 +142,25 @@ _sp_items = (
 )
 
 def _sp_items_update(self, context):
-    if self.bf_sp_context == context.space_data.context: return # no update needed, also for second update
-    for trial in (self.bf_sp_context,'OBJECT','MATERIAL','SCENE'):  # try several ordered choices
-        try: context.space_data.context = trial
-        except TypeError: continue # not available for current entity
-        else:
-            self.bf_sp_context = trial
-            break
+    # Get the right space on screen (Properties Panel)
+    space = context.space_data
+    if space and space.type != 'PROPERTIES': # I am not called by the Properties Panel
+        space = None
+        for window in context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == 'PROPERTIES':
+                    space = area.spaces[0]
+                    break
+    if not space: return
+    # Update Properties Panel context
+    try: space.context = self.bf_sp_context
+    except TypeError: self.bf_sp_context = 'SCENE'
 
 def _PROPERTIES_HT_header_draw(self, context):
     layout = self.layout
     row = layout.row()
     row.template_header()
     row.prop(context.window_manager, "bf_sp_context", expand=True, icon_only=True)
-
-def _rewire_space_properties_header():
-    """Rewire SpaceProperties header, less contexts shown"""
-    bpy.types.WindowManager.bf_sp_context = bpy.props.EnumProperty(items=_sp_items, update=_sp_items_update, default="OBJECT")
-    bpy.types.PROPERTIES_HT_header.draw = _PROPERTIES_HT_header_draw
 
 ### Treat (rewire or unregister) unused Blender bpy.types
 
