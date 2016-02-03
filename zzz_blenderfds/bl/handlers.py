@@ -27,14 +27,15 @@ def unregister():
 @bpy.app.handlers.persistent
 def _load_post(self):
     """This function is run after each time a Blender file is loaded"""
+    # Init
+    context = bpy.context
     # Check file format version
-    check_file_version(bpy.context)
+    check_file_version(context)
     # Init FDS default materials
     if not fds.surf.has_predefined(): bpy.ops.material.bf_set_predefined()
     # Set default scene appearance
     for scene in bpy.data.scenes: scene.set_default_appearance(context=None)
     # Open the right file in editor
-    context = bpy.context
     fds.head.set_free_text_file(context, context.scene)
     
 @bpy.app.handlers.persistent
