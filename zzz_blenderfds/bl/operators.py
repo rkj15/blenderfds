@@ -134,6 +134,25 @@ class OBJECT_OT_bf_correct_ijk(Operator):
         self.report({"INFO"}, "IJK corrected")
         return {'FINISHED'}
 
+### Create related SURF
+
+class OBJECT_OT_bf_new_related_surf(Operator):
+    bl_label = "New Related SURF"
+    bl_idname = "object.bf_new_related_surf"
+    bl_description = "Create new related SURF"
+
+    def execute(self, context):
+        # Create Material and link it to the Object
+        ma = bpy.data.materials.new("New SURF")
+        ob = context.active_object
+        ob.active_material = ma
+        ma.bf_export = True
+        # Change context (modified panel)
+        context.window_manager.bf_sp_context = 'MATERIAL' # Works even with regular UI
+        # Return
+        self.report({"INFO"}, "New related SURF created")
+        return {'FINISHED'}
+
 ### Show FDS export string
 
 class _COMMON_bf_show_fds_code():
@@ -460,3 +479,4 @@ class MATERIAL_OT_bf_set_tau_q(Operator):
         # Call dialog
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
+
