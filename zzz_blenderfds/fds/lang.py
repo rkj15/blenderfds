@@ -1200,6 +1200,11 @@ class OP_SURF_ID(BFProp):
     def get_exported(self, context):
         return self.element.active_material and self.element.active_material.bf_export
 
+    def _draw_body(self, context, layout):
+        row = layout.row()
+        row.prop(self.element, self.bpy_idname, text=self.label)
+        row.operator("object.bf_new_related_surf", icon="ZOOMIN", text="")
+
     def to_fds(self, context):
         if self.get_exported(context): return "SURF_ID='{}'".format(self.element.active_material.name)
         
