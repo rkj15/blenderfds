@@ -9,6 +9,8 @@ from . import tmp_objects
 
 DEBUG = False
 
+# TODO port to numpy for speed
+
 # "global" coordinates are absolute coordinate referring to Blender main origin of axes,
 # that are directly transformed to FDS coordinates (that refer to the only origin of axes) 
 
