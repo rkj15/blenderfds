@@ -88,12 +88,12 @@ class OBJECT_OT_bf_set_cell_size(Operator):
     )
     bf_snap_to_origin = BoolProperty(
         name="Snap To Global Origin",
-        description="Snap this MESH to global origin",
+        description="Snap this MESH to global origin while setting desired cell sizes (Object may be scaled and moved)",
         default=False,
     )
     bf_poisson_restriction = BoolProperty(
         name="Poisson Restriction",
-        description="Respect FDS Poisson solver restriction on IJK values by adjusting object dimensions",
+        description="Respect FDS Poisson solver restriction on IJK values while setting desired cell sizes (Object may be scaled and moved)",
         default=False,
     )
     
@@ -109,8 +109,10 @@ class OBJECT_OT_bf_set_cell_size(Operator):
         
     def execute(self, context):
         ob = context.active_object
-        fds.mesh.set_cell_sizes(context, ob, self.bf_cell_sizes, self.bf_snap_to_origin, self.bf_poisson_restriction)
-        self.report({"INFO"}, "MESH cell size set")
+        ob_moved = fds.mesh.set_cell_sizes(context, ob, self.bf_cell_sizes, self.bf_snap_to_origin, self.bf_poisson_restriction)
+        ob.bf_mesh_ijk_export = True # Set export IJK
+        if ob_moved: self.report({"WARNING"}, "MESH cell size set, Object moved and scaled")
+        else: self.report({"INFO"}, "MESH cell size set")
         return {'FINISHED'}
 
     def invoke(self, context, event):

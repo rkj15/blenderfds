@@ -1,6 +1,7 @@
 """BlenderFDS, FDS MESH routines"""
 
 from .. import geometry
+from ..geometry.geom_utils import epsilon
 
 def _factor(n):
     """Generator for prime factors of n.
@@ -66,6 +67,9 @@ def set_cell_sizes(context, ob, desired_cell_sizes, snap_to_origin=True, poisson
     # Send new geometry to object, do not change the center
     ob.bf_mesh_ijk = new_ijk
     geometry.from_fds.xbs_to_ob(((x0, x1, y0, y1, z0, z1),), context, ob, bf_xb="BBOX", update_center=False)
+    # Verify Object movement and return moved or not
+    ob_moved = any(map(lambda x, y: x - y > epsilon, (x0, x1, y0, y1, z0, z1), current_xbs[0]))
+    return ob_moved
   
 def get_cell_infos(context, ob):
     """Get many cell infos from object"""
