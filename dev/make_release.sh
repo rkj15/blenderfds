@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=v4.0.1
+version=v4.0.2
 echo "Making BlenderFDS version $version release..."
 
 short_version=${version:1}
@@ -13,8 +13,8 @@ else
     exit 1
 fi
 
-unzip $version.zip
-rm -rf $version.zip
+unzip blenderfds-$short_version.zip
+rm -rf blenderfds-$short_version.zip
 mv blenderfds-$short_version BlenderFDS-$version
 
 cd BlenderFDS-$version
@@ -22,6 +22,7 @@ zip -r blenderfds.zip zzz_blenderfds
 rm -rf zzz_blenderfds dev .gitignore
 
 cd ..
+
 zip -r BlenderFDS-$version.zip BlenderFDS-$version
 rm -rf BlenderFDS-$version
 mv BlenderFDS-$version.zip ~/
