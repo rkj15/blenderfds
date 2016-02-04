@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=v4.0.0
+version=v4.0.1
 echo "Making BlenderFDS version $version release..."
 
 short_version=${version:1}
