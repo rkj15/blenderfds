@@ -1,8 +1,7 @@
 # BlenderFDS code repository
-The open user interface for Fire Dynamics Simulator (FDS)
 
-Visit official web pages at: http://www.blenderfds.org
+The open user interface for Fire Dynamics Simulator (FDS).
 
-Relese notes at: https://github.com/firetools/blenderfds/wiki/Release-notes
+Visit web site at: http://www.blenderfds.org
 
-Install instructions at: https://github.com/firetools/blenderfds/wiki/Installing-BlenderFDS
+![BlenderFDS logo](images/blenderfds_192.png)
