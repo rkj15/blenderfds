@@ -15,3 +15,6 @@ Released under the terms of the GNU General Public License, GEdit is free softwa
    * `~/.local/gtksourceview-2.0/language-specs/`
    * `~/.local/gtksourceview-1.0/language-specs/`
 - Run the `gedit` editor and enjoy FDS syntax highlighting.
+
+For more information, visit http://www.blenderfds.org
+
