@@ -847,6 +847,18 @@ class SP_DUMP_render_file(BFProp):
         else: super().from_fds(context, False)
 
 @subscribe
+class SP_DUMP_STATUS_FILES(BFProp):
+    label = "STATUS_FILES"
+    description = "Export status file (*.notready), deleted when the simulation is completed successfully"
+    fds_label = "STATUS_FILES"
+    bpy_type = Scene
+    bpy_idname = "bf_dump_status_files"
+    bpy_prop = BoolProperty
+    bpy_other = {
+		"default": True, # Always dump a status file
+	}
+
+@subscribe
 class SP_DUMP_NFRAMES_export(BFExportProp):
     bpy_type = Scene
     bpy_idname = "bf_dump_nframes_export"
@@ -882,7 +894,7 @@ class SN_DUMP(BFNamelist):
     enum_id = 3005
     fds_label = "DUMP"
     bf_prop_export = SP_DUMP_export
-    bf_props = SP_DUMP_render_file, SP_DUMP_NFRAMES, SP_DUMP_free
+    bf_props = SP_DUMP_render_file, SP_DUMP_STATUS_FILES, SP_DUMP_NFRAMES, SP_DUMP_free
     bpy_type = Scene
 
 
