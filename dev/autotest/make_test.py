@@ -1,4 +1,4 @@
-#!python3
+#!/usr/bin/python3
 # Make BlenderFDS test <http://blenderfds.org/>.
 # Copyright (C) 2016 Emanuele Gissi
 
@@ -38,7 +38,7 @@ def main():
                 "--python",
                 "./test.py",
                 "--", # end blender arguments
-                "--type", "export-test"
+                "--type", "test_export",
         )
         subprocess.call(args)
         
