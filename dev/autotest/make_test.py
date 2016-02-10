@@ -41,6 +41,9 @@ def main():
                 "--type", "export-test"
         )
         subprocess.call(args)
+        
+    #test_name = "couch" FIXME
+               
     print(bcolors.OKGREEN + "\nmake_test.py: Done." + bcolors.ENDC)
     
 if __name__ == "__main__":
