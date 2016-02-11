@@ -25,7 +25,7 @@ print("""
 bl_info = {
     "name": "BlenderFDS",
     "author": "Emanuele Gissi",
-    "version": (4,0,2),
+    "version": (4,0,3),
     "blender": (2,7,6),
     "api": 35622,
     "location": "File > Export > FDS Case (.fds)",
