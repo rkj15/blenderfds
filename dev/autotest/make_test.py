@@ -1,6 +1,7 @@
 #!/usr/bin/python3
-# Make BlenderFDS test <http://blenderfds.org/>.
+# Run BlenderFDS automated tests <http://blenderfds.org/>.
 # Copyright (C) 2016 Emanuele Gissi
+# Released under the terms of the GNU GPL version 3 or any later version.
 
 # Test
 # - export all example cases
@@ -22,7 +23,8 @@ class bcolors:
 
 blender = "/home/egissi/Documenti/Argomenti/BlenderFDS/blender"
 examples_dir = "/home/egissi/Documenti/Argomenti/BlenderFDS/git/blenderfds/examples"
-test_names = "round-room","plume","uni-build" # list of test names
+test_names = "couch",
+#"round-room","plume","uni-build" # list of test names FIXME
 
 # Main
 
