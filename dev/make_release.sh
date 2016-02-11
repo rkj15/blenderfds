@@ -4,12 +4,12 @@
 
 # Setup
 
-tag="v4.0.0"
+tag="v4.0.2"
 short_tag=${tag:1}
 release_name="BlenderFDS-$tag"
 
 github_url="https://github.com/firetools/blenderfds/archive"
-github_file="$tag.zip"
+github_file="blenderfds-$short_tag.zip"
 github_unzip_dir="blenderfds-$short_tag"
 
 git_local="/home/egissi/Documenti/Argomenti/BlenderFDS/git"
@@ -23,13 +23,13 @@ echo_title "Making <$release_name> release..."
 
 # Download from GitHub
 
-echo_msg "Downloading <$github_file> from GitHub..."
-cd /tmp
-if wget $github_url/$github_file; then echo_ok "Done."
-else
-    echo_err "Cannot download <$github_file> from GitHub. Aborted."
-    exit 1
-fi
+#echo_msg "Downloading <$github_file> from GitHub..."
+#cd /tmp
+#if wget $github_url/$github_file; then echo_ok "Done."
+#else
+#    echo_err "Cannot download <$github_file> from GitHub. Aborted."
+#    exit 1
+#fi
 
 # Unzipping and renaming
 
