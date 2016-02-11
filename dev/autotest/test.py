@@ -58,13 +58,13 @@ def test_export(blend_file,test_name,test_dir,ref_dir,log_file=None):
         bpy.context.screen.scene = sc
         bpy.ops.export_scene.fds_case(filepath="/".join((fds_dir,fds_file)))
         # Run FDS on it
-        _run(
-            name="fds "+fds_file,
-            args=['fds',"/".join((fds_dir,fds_file))],
-            cwd=fds_dir,
-            log_file=None,
-            returncodes={0:(True,"Simulation ok"),-11:(False,"Core dump")},
-        )
+        #_run(
+        #    name="fds "+fds_file,
+        #    args=['fds',"/".join((fds_dir,fds_file))],
+        #    cwd=fds_dir,
+        #    log_file=None,
+        #    returncodes={0:(True,"Simulation ok"),-11:(False,"Core dump")},
+        #)
         # Run diff on fds and ge1 file
         args = [
             "diff",

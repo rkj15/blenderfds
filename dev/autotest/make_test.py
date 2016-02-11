@@ -23,8 +23,7 @@ class bcolors:
 
 blender = "/home/egissi/Documenti/Argomenti/BlenderFDS/blender"
 examples_dir = "/home/egissi/Documenti/Argomenti/BlenderFDS/git/blenderfds/examples"
-test_names = "couch",
-#"round-room","plume","uni-build" # list of test names FIXME
+test_names = "round-room","plume","uni-build" # list of test names
 
 # Main
 
