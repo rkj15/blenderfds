@@ -208,7 +208,7 @@ class OP_XB(BFXBProp):
             ("PIXELS", "Pixels", "Export pixels from pixelized flat object", 400),
             ("EDGES", "Edges", "Segments, one for each edge of this object", 500),
         ),
-        "default": "BBOX",
+        "default": "NONE", # Cannot be "BBOX", beware in import!
     }
     allowed_items = "NONE", "BBOX", "VOXELS", "FACES", "PIXELS", "EDGES"
 
