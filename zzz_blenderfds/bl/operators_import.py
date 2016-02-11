@@ -15,12 +15,12 @@ DEBUG = False
 
 def import_OT_fds_case_menu(self, context):
     """Import an FDS case file into new scene, menu funtion"""
-    self.layout.operator("import.fds_case", text="FDS Case (.fds) to New Scene")
+    self.layout.operator("import_scene.fds_case", text="FDS Case (.fds) to New Scene")
 
 class import_OT_fds_case(Operator, ImportHelper):
     """Import an FDS case file into new scene, operator"""
     bl_label = "Import FDS Case"
-    bl_idname = "import.fds_case"
+    bl_idname = "import_scene.fds_case" # FIXME test
     bl_description = "Import an FDS case file into a new Blender Scene"
     filename_ext = ".fds"
     filter_glob = bpy.props.StringProperty(default="*.fds", options={'HIDDEN'})
@@ -38,7 +38,7 @@ class import_OT_fds_case(Operator, ImportHelper):
 class ImportHelperSnippet(ImportHelper):
     """Load an FDS snippet into current scene, operator"""
     bl_label = "Load FDS Snippet"
-    bl_idname = "import.fds_snippet"
+    bl_idname = "import_scene.fds_snippet" # FIXME test
     bl_description = "Load an FDS snippet into current Blender Scene"
     filename_ext = ".fds"
     filter_glob = bpy.props.StringProperty(default="*.fds", options={'HIDDEN'})
@@ -65,10 +65,10 @@ class ImportHelperSnippet(ImportHelper):
 
 def import_OT_fds_snippet_menu(self, context):
     """Import an FDS snippet into current scene, menu funtion"""
-    self.layout.operator("import.fds_snippet", text="FDS Snippet (.fds) to Scene")
+    self.layout.operator("import_scene.fds_snippet", text="FDS Snippet (.fds) to Scene")
 
 class import_OT_fds_snippet(Operator, ImportHelperSnippet):
-    bl_idname = "import.fds_snippet"
+    bl_idname = "import_scene.fds_snippet"
     filepath_predefined = None
 
 class MATERIAL_OT_bf_load_surf(Operator, ImportHelperSnippet):
@@ -105,14 +105,6 @@ def bl_scene_from_fds_case(operator, context, to_current_scene=False, filepath="
     # Init
     w = context.window_manager.windows[0]
     w.cursor_modal_set("WAIT")
-    if to_current_scene:
-        # Import into current scene
-        sc = context.scene
-    else:
-        # Create new scene and set as default
-        sc = bpy.data.scenes.new("imported_case")
-        bpy.context.screen.scene = sc
-        sc.set_default_appearance(context)
     # Read file
     DEBUG and print("BFDS: operators_import.bl_scene_from_fds_case: Importing:", filepath)
     try:
@@ -122,7 +114,16 @@ def bl_scene_from_fds_case(operator, context, to_current_scene=False, filepath="
         w.cursor_modal_restore()
         operator.report({"ERROR"}, "FDS file not readable, cannot import")
         return {'CANCELLED'}
-    # Import to scene
+    # Get Scene
+    if to_current_scene:
+        # Import into current scene
+        sc = context.scene
+    else:
+        # Create new scene and set as default
+        sc = bpy.data.scenes.new("imported_case")
+        bpy.context.screen.scene = sc
+        sc.set_default_appearance(context)
+    # Import to Scene
     try: sc.from_fds(context=context, value=imported_value)
     except BFException as err:
         w.cursor_modal_restore()

@@ -25,12 +25,12 @@ def export_OT_fds_case_menu(self, context):
     if sc.name: basename = "{0}.fds".format(bpy.path.clean_name(sc.name))
     # Call the exporter operator
     filepath = "{0}/{1}".format(directory, basename)
-    self.layout.operator("export.fds_case", text="Scene to FDS Case (.fds)").filepath = filepath
+    self.layout.operator("export_scene.fds_case", text="Scene to FDS Case (.fds)").filepath = filepath
 
 class export_OT_fds_case(Operator, ExportHelper):
     """Export current Blender Scene to an FDS case file, operator"""
     bl_label = "Export FDS"
-    bl_idname = "export.fds_case"
+    bl_idname = "export_scene.fds_case"
     bl_description = "Export current Blender Scene as an FDS case file"
     filename_ext = ".fds"
     filter_glob = bpy.props.StringProperty(default="*.fds", options={'HIDDEN'})
