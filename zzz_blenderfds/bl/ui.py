@@ -107,7 +107,7 @@ def _INFO_MT_file_draw(self, context):
 
 def _INFO_MT_help_draw(self, context):
     layout = self.layout
-    layout.operator("wm.url_open", text="BlenderFDS Manual", icon='HELP').url = "https://code.google.com/p/blenderfds/wiki/Wiki_Home"
+    layout.operator("wm.url_open", text="BlenderFDS Wiki", icon='HELP').url = "https://github.com/firetools/blenderfds/wiki"
     layout.operator("wm.url_open", text="BlenderFDS Website", icon='URL').url = "http://www.blenderfds.org"
     layout.separator()
     layout.operator("wm.url_open", text="Blender Manual", icon='HELP').url = "http://www.blender.org/manual"
