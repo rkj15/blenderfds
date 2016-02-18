@@ -9,7 +9,9 @@ from ..exceptions import BFException
 from .. import fds
 from .. import geometry
 
-### Dialog box
+# TODO search operators fro MATL_ID, PROP_ID...
+
+### Dialog box operator
 
 class WM_OT_bf_dialog(Operator):
     bl_label = "BlenderFDS"
@@ -74,6 +76,35 @@ class WM_OT_bf_load_blenderfds_settings(Operator):
         # Report
         self.report({"INFO"}, "Default BlenderFDS settings loaded")
         return {'FINISHED'}
+
+### DEVC QUANTITY
+
+class OBJECT_OT_bf_set_devc_quantity(Operator):
+    bl_label = "Set QUANTITY for DEVC"
+    bl_idname = "object.bf_set_devc_quantity"
+    bl_description = "Set QUANTITY parameter for DEVC namelist"
+
+    bf_quantity = EnumProperty(
+        name="QUANTITY", description="Set QUANTITY parameter for DEVC namelist",
+        items=fds.tables.get_quantity_items("D"),
+    )
+          
+    def execute(self, context):
+        ob = context.active_object
+        ob.bf_quantity = self.bf_quantity
+        self.report({"INFO"}, "QUANTITY parameter set")
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        ob = context.active_object
+        try: self.bf_quantity = ob.bf_quantity
+        except TypeError: ob.bf_quantity = ""
+        # Call dialog
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def draw(self, context):
+        self.layout.prop(self,"bf_quantity",text="")
 
 ### MESH and IJK
 

@@ -1,6 +1,46 @@
 """BlenderFDS, FDS tables"""
 
-# TODO: add QUANTITY tables
+### Frequently-used output quantities (FDS User's guide, table 16.3)
+
+quantities = (
+    ("ACTUATED SPRINKLERS", None, "D", "Number of activated sprinklers.",),
+    ("CPU TIME", "s", "D", "Elapsed CPU time since the start of the simulation.",),
+    ("CPU TIME PER STEP", "s", "D", "CPU time per time step for the MESH in which the DEVC is located.",),
+    ("FED", None, "D", "Fractional effective dose.",),
+    ("FIC", None, "DS", "Fractional irritant concentration.",),
+    ("VISIBILITY", "m", "DIPS", "Visibility.",),
+    ("LAYER HEIGHT", "m", "D", "Height of the interface between the hot upper layer and the cooler lower layer.",),
+    ("LOWER TEMPERATURE", "°C", "D", "Cooler lower layer temperature in a burning compartment.",),
+    ("UPPER TEMPERATURE", "°C", "D", "Hot upper layer temperature in a burning compartment.",),
+    ("NET HEAT FLUX", "kW/m²", "BD", "Net heat flux to the surface (convective + radiative).",),
+    ("GAUGE HEAT FLUX", "kW/m²", "BD", "Net heat flux to the surface supposed cold (convective + radiative).",),
+    ("CONVECTIVE HEAT FLUX", "kW/m²", "BD", "Convective heat flux to the surface.",),
+    ("RADIATIVE HEAT FLUX", "kW/m²", "BD", "Radiative heat flux to the surface.",),
+    ("TEMPERATURE", "°C", "DIPS", "Temperature.",),
+    ("WALL TEMPERATURE", "°C", "BD", "Surface temperature.",),
+    ("ADIABATIC SURFACE TEMPERATURE", "°C", "BD", "The temperature that the solid surface effectively sees in the fluid domain.",),
+    ("THERMOCOUPLE", "°C", "D", "Temperature of a modeled thermocouple.",),
+    ("PRESSURE", "Pa", "DIPS", "Perturbation pressure.",),
+    ("BACKGROUND PRESSURE", "Pa", "DIPS", "Background pressure.",),
+    ("DENSITY", "kg/m³", "DIPS", "Density (use also with SPEC_ID).",),  
+    ("BURNING RATE", "kg/m²/s", "BD", "Mass loss rate of fuel.",),
+    ("MASS FRACTION", "kg/kg", "DIPS", "Mass fraction of species (Requires SPEC_ID.",),
+    ("VOLUME FRACTION", "mol/mol", "DIPS", "Volume fraction of species (Requires SPEC_ID.",),
+)
+
+def get_quantity_items(file_type):
+    items = []
+    # Built like this: (("NET HEAT FLUX", "NET HEAT FLUX (kW/m²)", "If you want to record...",) ...)
+    for quantity in quantities:
+        name, unit, allowed_file_type, desc = quantity
+        if file_type in allowed_file_type:
+            items.append((
+                name,
+                unit and "{} ({})".format(name,unit) or name,
+                desc
+            ))
+    items.sort(key=lambda k:k[1])
+    return items
 
 ### Colors table from FDS source code (data.f90)
 

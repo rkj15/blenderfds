@@ -1213,7 +1213,7 @@ class OP_SURF_ID(BFProp):
         return self.element.active_material and self.element.active_material.bf_export
 
     def _draw_body(self, context, layout):
-        row = layout.row()
+        row = layout.row(align=True)
         row.prop(self.element, self.bpy_idname, text=self.label)
         row.operator("object.bf_new_related_surf", icon="ZOOMIN", text="")
 
@@ -1290,6 +1290,11 @@ class OP_DEVC_QUANTITY(BFStringProp):
     fds_label = "QUANTITY"
     bpy_type = Object
     bpy_idname = "bf_quantity"
+
+    def _draw_body(self, context, layout):
+        row = layout.row(align=True)
+        row.prop(self.element, "bf_quantity")
+        row.operator("object.bf_set_devc_quantity", icon="VIEWZOOM", text="")
 
 @subscribe
 class OP_DEVC_SETPOINT_export(BFExportProp):
