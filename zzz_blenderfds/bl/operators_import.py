@@ -20,7 +20,7 @@ def import_OT_fds_case_menu(self, context):
 class import_OT_fds_case(Operator, ImportHelper):
     """Import an FDS case file into new scene, operator"""
     bl_label = "Import FDS Case"
-    bl_idname = "import_scene.fds_case" # FIXME test
+    bl_idname = "import_scene.fds_case"
     bl_description = "Import an FDS case file into a new Blender Scene"
     filename_ext = ".fds"
     filter_glob = bpy.props.StringProperty(default="*.fds", options={'HIDDEN'})
@@ -38,7 +38,7 @@ class import_OT_fds_case(Operator, ImportHelper):
 class ImportHelperSnippet(ImportHelper):
     """Load an FDS snippet into current scene, operator"""
     bl_label = "Load FDS Snippet"
-    bl_idname = "import_scene.fds_snippet" # FIXME test
+    bl_idname = "import_scene.fds_snippet"
     bl_description = "Load an FDS snippet into current Blender Scene"
     filename_ext = ".fds"
     filter_glob = bpy.props.StringProperty(default="*.fds", options={'HIDDEN'})
