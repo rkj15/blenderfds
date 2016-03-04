@@ -2,17 +2,3 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.blend[123]
-*.end
-*.out
-*.smv
-*.bf
-*.iso
-*.s3d
-*.s3d.sz
-*.sf
-*.csv
-*.info
-*svn.txt
-*.prt5
-*.notready
-
