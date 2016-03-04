@@ -20,19 +20,22 @@ class BFObject():
         return "Object {}".format(self.name)
 
     @property
-    def bf_namelist(self) -> "BFNamelist instance": # Only one namelist per object
+    def bf_namelist(self) -> "BFNamelist instance or None": # Only one namelist per object
         """Returns an instance of the linked Object namelist class."""
-        if self.type != "MESH": return None
+        if self.type != "MESH" or self.bf_is_tmp: return None
         ON_cls = BFNamelist.all.get(self.bf_namelist_cls) # get class from name
         if ON_cls: return ON_cls(element=self) # create instance from class
 
     def set_default_appearance(self, context):
         """Set default object appearance."""
+        # Get bf_namelist
+        bf_namelist = self.bf_namelist
+        if not bf_namelist: return
         # Set draw_type
-        draw_type = self.bf_namelist.bf_other.get("draw_type")
+        draw_type = bf_namelist.bf_other.get("draw_type")
         if draw_type: self.draw_type = draw_type
         # Set hide_select
-        hide_select = self.bf_namelist.bf_other.get("hide_select")
+        hide_select = bf_namelist.bf_other.get("hide_select")
         if hide_select: self.hide_select = hide_select
         # Set show_transparent
         self.show_transparent = True
@@ -90,7 +93,7 @@ class BFMaterial():
         return "Material {}".format(self.name)
 
     @property
-    def bf_namelist(self) -> "BFNamelist instance": # Only one namelist per material
+    def bf_namelist(self) -> "BFNamelist instance or None": # Only one namelist per material
         """Returns an instance of the linked Material namelist class"""
         MN_cls = BFNamelist.all.get(self.bf_namelist_cls) # get class from name
         if MN_cls: return MN_cls(element=self) # create instance from class
@@ -101,7 +104,7 @@ class BFMaterial():
 
     def to_fds(self, context) -> "str or None":
         """Export myself in FDS notation."""
-        if self.bf_export and (self.name not in fds.surf.predefined):
+        if self.name not in fds.surf.predefined:
             bf_namelist = self.bf_namelist
             if bf_namelist: return bf_namelist.to_fds(context)
         
