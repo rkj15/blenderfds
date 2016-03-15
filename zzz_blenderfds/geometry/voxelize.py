@@ -40,7 +40,7 @@ def voxelize(context, ob, flat=False) -> "(xbs, voxel_size, timing)":
     # If flat, solidify and get flatten function for later generated xbs
     if flat: flat_origin, choose_flatten = _solidify_flat_ob(context, ob_bvox, voxel_size/3.)
     # Apply remesh modifier, update voxel_size (can be a little different from desired)
-    octree_depth, scale, voxel_size = _calc_remesh_modifier(context, ob.dimensions, voxel_size)
+    octree_depth, scale, voxel_size = _calc_remesh_modifier(context, ob, voxel_size)
     _apply_remesh_modifier(context, ob_bvox, octree_depth, scale)
     # Get voxelized object and, if requested, its bbox
     ob_avox = get_new_object(context, context.scene, "avox", get_global_mesh(context, ob_bvox), linked=False)
@@ -113,10 +113,10 @@ def _solidify_flat_ob(context, ob, thickness):
 # |-----|-----|-----|-----| voxels, dimension / scale
 #    |=====.=====.=====|    dimension
 
-def _calc_remesh_modifier(context, dimensions, voxel_size):
+def _calc_remesh_modifier(context, ob, voxel_size):
     """Calc Remesh modifier parameters for voxel_size."""
     # Get max dimension and init flag
-    dimension = max(dimensions)
+    dimension = max(ob.dimensions)
     dimension_too_large = True
     # Fix voxel_size for Blender remesh algorithm
     # If dimension / voxel_size is "too integer" voxelization is not very good.
