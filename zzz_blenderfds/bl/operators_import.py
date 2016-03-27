@@ -107,12 +107,21 @@ def bl_scene_from_fds_case(operator, context, to_current_scene=False, filepath="
     w.cursor_modal_set("WAIT")
     # Read file
     DEBUG and print("BFDS: operators_import.bl_scene_from_fds_case: Importing:", filepath)
-    try:
-        with open(filepath, "r") as infile:
-            imported_value = infile.read()
-    except EnvironmentError:
+    encodings = [('utf8','ignore'),('windows-1252',None),('utf8',None),] # Last tested first
+    while encodings:
+        e = encodings.pop()
+        try:
+            with open(filepath,"r",encoding=e[0],errors=e[1]) as infile:
+                imported_value = infile.read()
+        except UnicodeDecodeError: pass
+        except:
+            w.cursor_modal_restore()
+            operator.report({"ERROR"}, "FDS file not readable, cannot import")
+            return {'CANCELLED'}
+        else: break
+    if not encodings:
         w.cursor_modal_restore()
-        operator.report({"ERROR"}, "FDS file not readable, cannot import")
+        operator.report({"ERROR"}, "Unknown text encoding, cannot import")
         return {'CANCELLED'}
     # Get Scene
     if to_current_scene:
