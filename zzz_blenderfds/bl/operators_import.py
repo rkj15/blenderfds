@@ -1,6 +1,6 @@
 """BlenderFDS, io operators"""
 
-import bpy, os.path, sys
+import bpy, os, sys
 
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
@@ -42,7 +42,7 @@ class ImportHelperSnippet(ImportHelper):
     bl_description = "Load an FDS snippet into current Blender Scene"
     filename_ext = ".fds"
     filter_glob = bpy.props.StringProperty(default="*.fds", options={'HIDDEN'})
-    filepath_predefined = sys.path[0] + "/zzz_blenderfds/predefined/"
+    filepath_predefined = "/predefined/"
 
     def invoke(self, context, event):
         # Get snippet path from preferences
@@ -51,7 +51,8 @@ class ImportHelperSnippet(ImportHelper):
             self.filepath = preferences.bf_pref_custom_snippet_path
         # Else get it from predefined
         elif self.filepath_predefined:
-            self.filepath = self.filepath_predefined
+            self.filepath = os.path.dirname(sys.modules['zzz_blenderfds'].__file__) + \
+                self.filepath_predefined
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -75,19 +76,19 @@ class MATERIAL_OT_bf_load_surf(Operator, ImportHelperSnippet):
     bl_label = "Load predefined SURF"
     bl_idname = "material.bf_load_surf"
     bl_description = "Load a predefined SURF namelist"
-    filepath_predefined = sys.path[0] + "/zzz_blenderfds/predefined/SURFs/"    
+    filepath_predefined = "/predefined/SURFs/"    
 
 class SCENE_OT_bf_load_reac(Operator, ImportHelperSnippet):
     bl_label = "Load predefined REAC"
     bl_idname = "scene.bf_load_reac"
     bl_description = "Load a predefined REAC namelist"
-    filepath_predefined = sys.path[0] + "/zzz_blenderfds/predefined/REACs/"
+    filepath_predefined = "/predefined/REACs/"
     
 class SCENE_OT_bf_load_misc(Operator, ImportHelperSnippet):
     bl_label = "Load predefined MISC"
     bl_idname = "scene.bf_load_misc"
     bl_description = "Load a predefined MISC namelist"
-    filepath_predefined = sys.path[0] + "/zzz_blenderfds/predefined/MISCs/"
+    filepath_predefined = "/predefined/MISCs/"
 
 ### Import function
 

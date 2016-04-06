@@ -1,6 +1,6 @@
 """BlenderFDS, operators"""
 
-import bpy, sys
+import bpy, os, sys
 from bpy.types import Operator
 from bpy.props import *
 
@@ -67,8 +67,9 @@ class WM_OT_bf_load_blenderfds_settings(Operator):
         return wm.invoke_confirm(self, event)
 
     def execute(self, context):
-        # Set default startup.blend        
-        filepath = sys.path[0] + "/zzz_blenderfds/predefined/bf_startup.blend"
+        # Set default startup.blend
+        filepath = os.path.dirname(sys.modules['zzz_blenderfds'].__file__) \
+            + "/predefined/bf_startup.blend"
         bpy.ops.wm.open_mainfile(filepath=filepath, load_ui=True, use_scripts=True)
         bpy.ops.wm.save_homefile()
         # Save user preferences
